@@ -18,6 +18,17 @@
 			</div>
 			<div class="controls">
 				<div class="controls__grid">
+					<button class="elem-button js-insert-rect">
+						<svg height="30" width="30">
+							<rect x="5" y="5" height="20" width="20" fill="transparent" stroke="black" stroke-width="1" />
+						</svg>
+					</button>
+					<button class="elem-button js-insert-ellipse">
+						<svg height="30" width="30">
+							<ellipse cx="15" cy="15" rx="10" ry="10" fill="transparent" stroke="black" stroke-width="1" />
+						</svg>
+					</button>
+
 					<label>Grid Size</label>
 					<div class="controls__group">
 						<label>x</label>
@@ -33,16 +44,90 @@
 	</body>
 
 	<script>
-		let svg = document.querySelector('.js-svg')
+		// Main elemns and definitions
+		var svg = document.querySelector('.js-svg');
+		var svgns = "http://www.w3.org/2000/svg";
 
 		// controls
-		let xSize = document.querySelector('.js-size-x')
-		let ySize = document.querySelector('.js-size-y')
+		var xSize = document.querySelector('.js-size-x');
+		var ySize = document.querySelector('.js-size-y');
+		var insertRect = document.querySelector('.js-insert-rect');
+		var insertEllipseBtn = document.querySelector('.js-insert-ellipse');
+
+		// globalState
+
+		var currentElement = null;
 
 		// control actions
-		xSize.addEventListener('change', (e) => svg.setAttribute('width', xSize.value))
-		ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value))
 
+		xSize.addEventListener('change', (e) => svg.setAttribute('width', xSize.value));
+		ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value));
+		insertRect.addEventListener('click', insertSquare);
+		insertEllipseBtn.addEventListener('click', insertEllipse);
+
+		// insert elements
+
+		function insertSquare() {
+			var rect = document.createElementNS(svgns, 'rect');
+			rect.setAttribute('height', '100');
+			rect.setAttribute('width', '100');
+			rect.setAttribute('x', '100');
+			rect.setAttribute('y', '100');
+			rect.setAttribute('fill', 'transparent');
+			rect.setAttribute('stroke', 'black');
+			rect.setAttribute('stroke-width', '1');
+			rect.class = 'svg-rect';
+
+			rect.addEventListener('click', handleElementClick);
+
+			svg.appendChild(rect);
+		}
+
+		function insertEllipse() {
+			var elem = document.createElementNS(svgns, 'ellipse');
+			elem.setAttribute('rx', '40');
+			elem.setAttribute('ry', '40');
+			elem.setAttribute('cx', '100');
+			elem.setAttribute('cy', '100');
+			elem.setAttribute('fill', 'transparent');
+			elem.setAttribute('stroke', 'black');
+			elem.setAttribute('stroke-width', '1');
+
+			svg.appendChild(elem);
+		}
+
+		// Event handlers
+
+		function handleElementClick(e) {
+			selectElement(e.target);	
+		}
+
+		// Select element
+
+		function selectElement(element) {
+			var padding = 20;
+			var dimensions = element.getBoundingClientRect();
+			var boxX = dimensions.x - padding / 2;
+			var boxY = dimensions.y - padding / 2;
+			var boxWidth = dimensions.width + padding;
+			var boxHeight = dimensions.height + padding;
+
+			var selectBox = document.createElement('div');
+
+			var style = `
+				width: ${boxWidth}px;
+				height: ${boxHeight}px;
+				border: 1px solid #aaa;
+				background-color: transparent;
+				position: absolute;
+				z-index: 10;
+				top: ${boxX}px;
+				left: ${boxY}px;
+			`
+			selectBox.style = style;
+
+			document.body.appendChild(selectBox);
+		}
 	</script>
 
 	<style>
@@ -69,12 +154,24 @@
 			position: absolute;
 			top: 50px;
 			left: 1100px;
+			display: flex;
+			flex-direction: column;
+			background-color: #fff;
+			padding: 20px;
 		}
 
 		.controls__group {
 			input {
 				width: 50%;
 			}
+		}
+
+		.elem-button {
+			display: block;
+			background-color: transparent;
+			border: none;
+			outline: none;
+			cursor: pointer;
 		}
 	</style>
 </html>
