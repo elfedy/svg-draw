@@ -44,31 +44,40 @@
 	</body>
 
 	<script>
-		// Main elemns and definitions
-		var svg = document.querySelector('.js-svg');
-		var svgns = "http://www.w3.org/2000/svg";
+		// Main canvas and definitions
 
-		// controls
-		var xSize = document.querySelector('.js-size-x');
-		var ySize = document.querySelector('.js-size-y');
-		var insertRect = document.querySelector('.js-insert-rect');
-		var insertEllipseBtn = document.querySelector('.js-insert-ellipse');
+		let svg = document.querySelector('.js-svg');
+		let svgns = "http://www.w3.org/2000/svg";
 
-		// globalState
+		// Controls
 
-		var currentElement = null;
+		let xSize = document.querySelector('.js-size-x');
+		let ySize = document.querySelector('.js-size-y');
+		let insertRect = document.querySelector('.js-insert-rect');
+		let insertEllipseBtn = document.querySelector('.js-insert-ellipse');
 
-		// control actions
+		// Global State
+
+		let currentElement = null;
+		let isMovingElement = false;
+		let movementInitCoords = null
+
+
+		// Event listeners for controls
+
+		document.body.addEventListener('click', handleUserClick);
+		document.body.addEventListener('mousemove', handleUserMousemove);
+		document.body.addEventListener('mouseup', handleUserMouseup);
 
 		xSize.addEventListener('change', (e) => svg.setAttribute('width', xSize.value));
 		ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value));
 		insertRect.addEventListener('click', insertSquare);
 		insertEllipseBtn.addEventListener('click', insertEllipse);
 
-		// insert elements
+		// Insert elements
 
 		function insertSquare() {
-			var rect = document.createElementNS(svgns, 'rect');
+			let rect = document.createElementNS(svgns, 'rect');
 			rect.setAttribute('height', '100');
 			rect.setAttribute('width', '100');
 			rect.setAttribute('x', '100');
@@ -76,6 +85,7 @@
 			rect.setAttribute('fill', 'transparent');
 			rect.setAttribute('stroke', 'black');
 			rect.setAttribute('stroke-width', '1');
+			rect.setAttribute('data-item', 'element');
 			rect.class = 'svg-rect';
 
 			rect.addEventListener('click', handleElementClick);
@@ -84,7 +94,7 @@
 		}
 
 		function insertEllipse() {
-			var elem = document.createElementNS(svgns, 'ellipse');
+			let elem = document.createElementNS(svgns, 'ellipse');
 			elem.setAttribute('rx', '40');
 			elem.setAttribute('ry', '40');
 			elem.setAttribute('cx', '100');
@@ -98,35 +108,96 @@
 
 		// Event handlers
 
+		function handleUserClick(e) {
+			//console.log(e.target);
+		}
+
+		function handleUserMousemove(e) {
+			if(currentElement && isMovingElement) {
+				movementInitCoords = movementInitCoords || {
+					clientX: e.clientX, 
+					clientY: e.clientY,
+					elementX: parseInt(currentElement.getAttribute('x')),
+					elementY: parseInt(currentElement.getAttribute('y')),
+				};
+
+				let diff = {
+					x: e.clientX - movementInitCoords.clientX,
+					y: e.clientY - movementInitCoords.clientX,
+				}
+
+				console.log(diff);
+
+				currentElement.setAttribute('x', movementInitCoords.elementX + diff.x);
+				currentElement.setAttribute('y', movementInitCoords.elementY + diff.y);
+
+				placeSelectBox();
+			}
+		}
+
 		function handleElementClick(e) {
 			selectElement(e.target);	
 		}
 
-		// Select element
+		function handleElementMousedown(e) {
+			isMovingElement = true;
+		}
+
+		function handleUserMouseup(e) {
+			isMovingElement = false;
+			movingInitCoords = null;
+		}
+
+		// Actions
 
 		function selectElement(element) {
-			var padding = 20;
-			var dimensions = element.getBoundingClientRect();
-			var boxX = dimensions.x - padding / 2;
-			var boxY = dimensions.y - padding / 2;
-			var boxWidth = dimensions.width + padding;
-			var boxHeight = dimensions.height + padding;
+			// Set current element
+			currentElement = element;
+			placeSelectBox();
+		}
 
-			var selectBox = document.createElement('div');
+		function placeSelectBox() {
+			// Get dimensions
+			let padding = 20;
+			let dimensions = currentElement.getBoundingClientRect();
+			let boxX = dimensions.x - padding / 2;
+			let boxY = dimensions.y - padding / 2;
+			let boxWidth = dimensions.width + padding;
+			let boxHeight = dimensions.height + padding;
 
-			var style = `
+			// Set styling
+			let style = `
 				width: ${boxWidth}px;
 				height: ${boxHeight}px;
-				border: 1px solid #aaa;
+				border: 1px solid #0a84ff;
 				background-color: transparent;
 				position: absolute;
 				z-index: 10;
-				top: ${boxX}px;
-				left: ${boxY}px;
+				left: ${boxX}px;
+				top: ${boxY}px;
 			`
+
+			
+			let selectBox = document.querySelector('div[data-item="selector"]') || null;
+			let selectBoxFound = selectBox ? true : false;
+			selectBox = selectBox || document.createElement('div');
+
 			selectBox.style = style;
 
-			document.body.appendChild(selectBox);
+			// init select box if not found
+			if(!selectBoxFound) {
+				selectBox.setAttribute('data-item', 'selector');
+				selectBox.addEventListener('mousedown', handleElementMousedown);
+				document.body.appendChild(selectBox);
+			}
+		}
+
+		// Debugging
+
+		function logElementPosition(element, label) {
+			let dimensions = element.getBoundingClientRect();
+			console.log(`${label} x: ${dimensions.x}`);
+			console.log(`${label} y: ${dimensions.y}`);
 		}
 	</script>
 
