@@ -126,10 +126,22 @@
 					y: e.clientY - movementInitCoords.clientX,
 				}
 
-				console.log(diff);
+				// Get new x/y values
+				let elemDims = currentElement.getBoundingClientRect();
 
-				currentElement.setAttribute('x', movementInitCoords.elementX + diff.x);
-				currentElement.setAttribute('y', movementInitCoords.elementY + diff.y);
+				let minX = 0;
+				let maxX = parseInt(svg.getAttribute('width')) - movementInitCoords.elementX;
+				let minY = 0;
+				let maxY = parseInt(svg.getAttribute('height')) - movementInitCoords.elementY;
+
+				let targetX = movementInitCoords.elementX + diff.x;
+				let newX = Math.min(maxX, Math.max(minX, targetX));
+				let targetY = movementInitCoords.elementY + diff.y;
+				let newY = Math.min(maxY, Math.max(minY, targetY));
+
+				// Set new position
+				currentElement.setAttribute('x', newX);
+				currentElement.setAttribute('y', newY);
 
 				placeSelectBox();
 			}
