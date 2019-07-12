@@ -88,7 +88,6 @@
 			rect.setAttribute('data-item', 'element');
 			rect.class = 'svg-rect';
 
-			rect.addEventListener('click', handleElementClick);
 
 			svg.appendChild(rect);
 		}
@@ -109,7 +108,22 @@
 		// Event handlers
 
 		function handleUserClick(e) {
-			//console.log(e.target);
+			let itemType = e.target.getAttribute('data-item') || null;
+			console.log(itemType);
+			switch(itemType) {
+				case 'element':
+					console.log('should run this');
+					handleElementClick(e.target);
+					break;
+				
+				case 'selector':
+					break;
+
+				default:
+					// Deselect if target is not an item
+					currentElement = null;
+					placeSelectBox();
+			}
 		}
 
 		function handleUserMousemove(e) {
@@ -147,8 +161,8 @@
 			}
 		}
 
-		function handleElementClick(e) {
-			selectElement(e.target);	
+		function handleElementClick(element) {
+			selectElement(element);	
 		}
 
 		function handleElementMousedown(e) {
@@ -169,38 +183,46 @@
 		}
 
 		function placeSelectBox() {
-			// Get dimensions
-			let padding = 20;
-			let dimensions = currentElement.getBoundingClientRect();
-			let boxX = dimensions.x - padding / 2;
-			let boxY = dimensions.y - padding / 2;
-			let boxWidth = dimensions.width + padding;
-			let boxHeight = dimensions.height + padding;
+			if(currentElement) {
+				// Get dimensions
+				let padding = 20;
+				let dimensions = currentElement.getBoundingClientRect();
+				let boxX = dimensions.x - padding / 2;
+				let boxY = dimensions.y - padding / 2;
+				let boxWidth = dimensions.width + padding;
+				let boxHeight = dimensions.height + padding;
 
-			// Set styling
-			let style = `
-				width: ${boxWidth}px;
-				height: ${boxHeight}px;
-				border: 1px solid #0a84ff;
-				background-color: transparent;
-				position: absolute;
-				z-index: 10;
-				left: ${boxX}px;
-				top: ${boxY}px;
-			`
+				// Set styling
+				let style = `
+					width: ${boxWidth}px;
+					height: ${boxHeight}px;
+					border: 1px solid #0a84ff;
+					background-color: transparent;
+					position: absolute;
+					z-index: 10;
+					left: ${boxX}px;
+					top: ${boxY}px;
+				`
 
-			
-			let selectBox = document.querySelector('div[data-item="selector"]') || null;
-			let selectBoxFound = selectBox ? true : false;
-			selectBox = selectBox || document.createElement('div');
+				
+				let selectBox = document.querySelector('div[data-item="selector"]') || null;
+				let selectBoxFound = selectBox ? true : false;
+				selectBox = selectBox || document.createElement('div');
 
-			selectBox.style = style;
+				selectBox.style = style;
 
-			// init select box if not found
-			if(!selectBoxFound) {
-				selectBox.setAttribute('data-item', 'selector');
-				selectBox.addEventListener('mousedown', handleElementMousedown);
-				document.body.appendChild(selectBox);
+				// init select box if not found
+				if(!selectBoxFound) {
+					selectBox.setAttribute('data-item', 'selector');
+					selectBox.addEventListener('mousedown', handleElementMousedown);
+					document.body.appendChild(selectBox);
+				}
+			} else {
+				// Delete select box if found
+				let selectBox = document.querySelector('div[data-item="selector"]') || null;
+				if(selectBox) {
+					selectBox.parentNode.removeChild(selectBox);
+				}
 			}
 		}
 
