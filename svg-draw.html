@@ -68,6 +68,7 @@
 		document.body.addEventListener('click', handleUserClick);
 		document.body.addEventListener('mousemove', handleUserMousemove);
 		document.body.addEventListener('mouseup', handleUserMouseup);
+		document.body.addEventListener('keypress', handleUserKeypress);
 
 		xSize.addEventListener('change', (e) => svg.setAttribute('width', xSize.value));
 		ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value));
@@ -107,9 +108,16 @@
 
 		// Event handlers
 
+		function handleUserKeypress(e) {
+			if(currentElement !== null && e.charCode === 100) {
+				removeElement(currentElement);
+				currentElement = null;
+				placeSelectBox();
+			}
+		}
+
 		function handleUserClick(e) {
 			let itemType = e.target.getAttribute('data-item') || null;
-			console.log(itemType);
 			switch(itemType) {
 				case 'element':
 					console.log('should run this');
@@ -141,12 +149,11 @@
 				}
 
 				// Get new x/y values
-				let elemDims = currentElement.getBoundingClientRect();
-
-				let minX = 0;
-				let maxX = parseInt(svg.getAttribute('width')) - movementInitCoords.elementX;
-				let minY = 0;
-				let maxY = parseInt(svg.getAttribute('height')) - movementInitCoords.elementY;
+				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
+				let minX = 0 + borderWidth;
+				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - movementInitCoords.elementX;
+				let minY = 0 + borderWidth;
+				let maxY = parseInt(svg.getAttribute('height')) - movementInitCoords.elementY - borderWidth;
 
 				let targetX = movementInitCoords.elementX + diff.x;
 				let newX = Math.min(maxX, Math.max(minX, targetX));
@@ -219,11 +226,20 @@
 				}
 			} else {
 				// Delete select box if found
-				let selectBox = document.querySelector('div[data-item="selector"]') || null;
-				if(selectBox) {
-					selectBox.parentNode.removeChild(selectBox);
-				}
+				removeSelectBox()
 			}
+		}
+
+		// Helpers
+		function removeElement(element) {
+			if(element) {
+				element.parentNode.removeChild(element);
+			}
+		}
+
+		function removeSelectBox() {
+			let selectBox = document.querySelector('div[data-item="selector"]') || null;
+			removeElement(selectBox);
 		}
 
 		// Debugging
