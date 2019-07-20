@@ -56,12 +56,19 @@
 		let insertRect = document.querySelector('.js-insert-rect');
 		let insertEllipseBtn = document.querySelector('.js-insert-ellipse');
 
-		// Global State
+		/*
+		* GLOBAL STATE 
+		*/
 
 		let currentElement = null;
-		let isMovingElement = false;
 		let movementInitCoords = null
 
+		// movement
+		let isMovingElement = false;
+
+		// resize
+		let isResizingHorizontally = false
+		let isResizingVertically = false
 
 		// Event listeners for controls
 
@@ -120,11 +127,13 @@
 			let itemType = e.target.getAttribute('data-item') || null;
 			switch(itemType) {
 				case 'element':
-					console.log('should run this');
 					handleElementClick(e.target);
 					break;
 				
 				case 'selector':
+					break;
+
+				case 'resize':
 					break;
 
 				default:
@@ -145,7 +154,7 @@
 
 				let diff = {
 					x: e.clientX - movementInitCoords.clientX,
-					y: e.clientY - movementInitCoords.clientX,
+					y: e.clientY - movementInitCoords.clientY,
 				}
 
 				// Get new x/y values
@@ -166,6 +175,30 @@
 
 				placeSelectBox();
 			}
+
+			if(currentElement && isResizingVertically) {
+				movementInitCoords = movementInitCoords || {
+					clientY: e.clientY,
+					elementY: parseInt(currentElement.getAttribute('y')),
+				};
+
+				let diff = {
+					y: e.clientY - movementInitCoords.clientY,
+				}
+
+				// Get new height value
+				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
+				let minHeight = 1 + borderWidth;
+				let maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y'));
+
+				let targetHeight = movementInitCoords.elementY + diff.y;
+				let newHeight = Math.min(maxHeight, Math.max(minHeight, targetHeight));
+
+				// Set new position
+				currentElement.setAttribute('height', newHeight);
+
+				placeSelectBox();
+			}
 		}
 
 		function handleElementClick(element) {
@@ -173,12 +206,25 @@
 		}
 
 		function handleElementMousedown(e) {
-			isMovingElement = true;
+			let itemType = e.target.getAttribute('data-item') || null;
+
+			if(itemType === 'selector') {
+				isMovingElement = true;
+			}
+
+			if(itemType === 'resize') {
+				let resizeDirection = e.target.getAttribute('data-location') || null;
+				if(resizeDirection === "down") {
+					isResizingVertically = true;
+				}
+			}
 		}
 
 		function handleUserMouseup(e) {
 			isMovingElement = false;
-			movingInitCoords = null;
+			movementInitCoords = null;
+			isResizingVertically = false;
+		  isResizingHorizontally = false;
 		}
 
 		// Actions
@@ -192,42 +238,96 @@
 		function placeSelectBox() {
 			if(currentElement) {
 				// Get dimensions
-				let padding = 20;
+				let padding = 5;
 				let dimensions = currentElement.getBoundingClientRect();
 				let boxX = dimensions.x - padding / 2;
 				let boxY = dimensions.y - padding / 2;
 				let boxWidth = dimensions.width + padding;
 				let boxHeight = dimensions.height + padding;
 
-				// Set styling
-				let style = `
+				// resize square dims
+				let resizeLength = 10;
+				let resizeDims = {
+					up: {
+						x: boxWidth / 2 - resizeLength / 2,
+						y: - resizeLength / 2,
+					},
+					down: {
+						x: boxWidth / 2 - resizeLength / 2,
+						y: boxHeight - resizeLength / 2,
+					},
+					left: {
+						x: -resizeLength / 2,
+						y: boxHeight / 2 - resizeLength / 2,
+					},
+					right: {
+						x: boxWidth - resizeLength / 2,
+						y: boxHeight / 2 - resizeLength / 2,
+					},
+				}
+
+
+				// handle select box style
+				let selectBox = document.querySelector('div[data-item="selector"]') || null;
+				let selectBoxFound = selectBox ? true : false;
+				selectBox = selectBox || document.createElement('div');
+				selectBox.style = `
 					width: ${boxWidth}px;
 					height: ${boxHeight}px;
 					border: 1px solid #0a84ff;
 					background-color: transparent;
+					box-sizing: border-box;
 					position: absolute;
 					z-index: 10;
 					left: ${boxX}px;
 					top: ${boxY}px;
 				`
 
-				
-				let selectBox = document.querySelector('div[data-item="selector"]') || null;
-				let selectBoxFound = selectBox ? true : false;
-				selectBox = selectBox || document.createElement('div');
+				// handle resize rectangle style (Store in Array in case I need to insert them)
+				let rectangleSelectors = 
+					['up', 'down', 'left', 'right'].map(function(location) {
+						let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
+						let cursor = ['up', 'down'].includes(location) ? 'ns-resize' : 'ew-resize';
 
-				selectBox.style = style;
+						item.style = `
+							width: ${resizeLength}px;
+							height: ${resizeLength}px;
+							border: 1px solid #000;
+							background-color: #fff;
+							box-sizing: border-box;
+							cursor: ${cursor};
+							position: absolute;
+							z-index: 20;
+							left: ${resizeDims[location].x}px;
+							top: ${resizeDims[location].y}px;
+						`
+
+						return item
+					})
+
 
 				// init select box if not found
 				if(!selectBoxFound) {
 					selectBox.setAttribute('data-item', 'selector');
 					selectBox.addEventListener('mousedown', handleElementMousedown);
+					rectangleSelectors.forEach(function(rect) {
+						selectBox.appendChild(rect);
+					})
 					document.body.appendChild(selectBox);
 				}
 			} else {
 				// Delete select box if found
 				removeSelectBox()
 			}
+		}
+
+		// Create elements
+		function createResizeSquare(location) {
+			let square = document.createElement('div');
+			square.setAttribute('data-item', `resize`);
+			square.setAttribute('data-location', `${location}`);
+			
+			return square;
 		}
 
 		// Helpers
