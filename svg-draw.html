@@ -144,6 +144,7 @@
 		}
 
 		function handleUserMousemove(e) {
+			// Move element
 			if(currentElement && isMovingElement) {
 				movementInitCoords = movementInitCoords || {
 					clientX: e.clientX, 
@@ -160,9 +161,9 @@
 				// Get new x/y values
 				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
 				let minX = 0 + borderWidth;
-				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - movementInitCoords.elementX;
+				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - parseInt(currentElement.getAttribute('width'));
 				let minY = 0 + borderWidth;
-				let maxY = parseInt(svg.getAttribute('height')) - movementInitCoords.elementY - borderWidth;
+				let maxY = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('height')) - borderWidth;
 
 				let targetX = movementInitCoords.elementX + diff.x;
 				let newX = Math.min(maxX, Math.max(minX, targetX));
@@ -176,6 +177,7 @@
 				placeSelectBox();
 			}
 
+			// Resize Vertically
 			if(currentElement && isResizingVertically) {
 				movementInitCoords = movementInitCoords || {
 					clientY: e.clientY,
@@ -184,18 +186,26 @@
 
 				let diff = {
 					y: e.clientY - movementInitCoords.clientY,
-				}
+				};
 
 				// Get new height value
 				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
 				let minHeight = 1 + borderWidth;
 				let maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y'));
 
-				let targetHeight = movementInitCoords.elementY + diff.y;
+				let targetHeight 
+				if(diff.y < 0) {
+					targetHeight = movementInitCoords.elementY - diff.y;
+				} else {
+					targetHeight = movementInitCoords.elementY + diff.y;
+				}
 				let newHeight = Math.min(maxHeight, Math.max(minHeight, targetHeight));
 
 				// Set new position
 				currentElement.setAttribute('height', newHeight);
+				if(diff.y < 0) {
+					currentElement.setAttribute('y', Math.max(e.clientY, svg.getBoundingClientRect().y));
+				}
 
 				placeSelectBox();
 			}
