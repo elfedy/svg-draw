@@ -188,23 +188,25 @@
 					y: e.clientY - movementInitCoords.clientY,
 				};
 
-				// Get new height value
+
+				// Set new height value
 				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
-				let minHeight = 1 + borderWidth;
-				let maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y'));
-
-				let targetHeight 
-				if(diff.y < 0) {
-					targetHeight = movementInitCoords.elementY - diff.y;
+				let targetHeight = movementInitCoords.elementY + diff.y;
+				let maxHeight;
+				let minHeight = 1;
+				let newHeight;
+				if(targetHeight >= 0) {
+					// downwards resize (make element larger keeping y)
+					maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y')) - borderWidth;
+					newHeight = Math.min(maxHeight, Math.max(minHeight, targetHeight));
+					currentElement.setAttribute('height', newHeight);
 				} else {
-					targetHeight = movementInitCoords.elementY + diff.y;
-				}
-				let newHeight = Math.min(maxHeight, Math.max(minHeight, targetHeight));
-
-				// Set new position
-				currentElement.setAttribute('height', newHeight);
-				if(diff.y < 0) {
-					currentElement.setAttribute('y', Math.max(e.clientY, svg.getBoundingClientRect().y));
+					// upwards resize (move y up and make larger)
+					let targetY = movementInitCoords.elementY + targetHeight
+					if(targetY >= 0) {
+						currentElement.setAttribute('y', targetY);
+						currentElement.setAttribute('height', -targetHeight);
+					}
 				}
 
 				placeSelectBox();
@@ -231,6 +233,7 @@
 		}
 
 		function handleUserMouseup(e) {
+			// Reset all mousemove related state
 			isMovingElement = false;
 			movementInitCoords = null;
 			isResizingVertically = false;
