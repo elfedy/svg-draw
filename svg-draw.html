@@ -153,6 +153,7 @@
 					elementY: parseInt(currentElement.getAttribute('y')),
 				};
 
+
 				let diff = {
 					x: e.clientX - movementInitCoords.clientX,
 					y: e.clientY - movementInitCoords.clientY,
@@ -162,7 +163,7 @@
 				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
 				let minX = 0 + borderWidth;
 				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - parseInt(currentElement.getAttribute('width'));
-				let minY = 0 + borderWidth;
+				let minY = 0;// + borderWidth;
 				let maxY = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('height')) - borderWidth;
 
 				let targetX = movementInitCoords.elementX + diff.x;
@@ -179,22 +180,30 @@
 
 			// Resize Vertically
 			if(currentElement && isResizingVertically) {
+				console.log("initial init", movementInitCoords);
 				movementInitCoords = movementInitCoords || {
 					clientY: e.clientY,
 					elementY: parseInt(currentElement.getAttribute('y')),
+					elementHeight: parseInt(currentElement.getAttribute('height')),
 				};
 
 				let diff = {
 					y: e.clientY - movementInitCoords.clientY,
 				};
 
+				console.log("final init", movementInitCoords);
+				console.log(e);
+				console.log(diff);
+
 
 				// Set new height value
 				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
-				let targetHeight = movementInitCoords.elementY + diff.y;
+				let targetHeight = movementInitCoords.elementHeight + diff.y;
 				let maxHeight;
 				let minHeight = 1;
 				let newHeight;
+
+				console.log(targetHeight);
 				if(targetHeight >= 0) {
 					// downwards resize (make element larger keeping y)
 					maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y')) - borderWidth;
@@ -233,11 +242,13 @@
 		}
 
 		function handleUserMouseup(e) {
+			console.log("mouseup running");
 			// Reset all mousemove related state
 			isMovingElement = false;
 			movementInitCoords = null;
 			isResizingVertically = false;
 		  isResizingHorizontally = false;
+			console.log("movementInitCoords", movementInitCoords);
 		}
 
 		// Actions
