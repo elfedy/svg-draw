@@ -67,8 +67,9 @@
 		let isMovingElement = false;
 
 		// resize
-		let isResizingHorizontally = false
-		let isResizingVertically = false
+		let isResizingHorizontallyLeft = false
+		let isResizingVerticallyDown = false
+		let isResizingVerticallyUp = false
 
 		// Event listeners for controls
 
@@ -179,8 +180,41 @@
 			}
 
 			// Resize Vertically
-			if(currentElement && isResizingVertically) {
-				console.log("initial init", movementInitCoords);
+			if(currentElement && isResizingVerticallyUp) {
+				movementInitCoords = movementInitCoords || {
+					clientY: e.clientY,
+					elementY: parseInt(currentElement.getAttribute('y')),
+					elementHeight: parseInt(currentElement.getAttribute('height')),
+				};
+
+				let diff = {
+					y: movementInitCoords.clientY - e.clientY,
+				};
+
+				// Set new height value
+				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
+				let targetHeight = movementInitCoords.elementHeight + diff.y;
+				let maxHeight;
+				let minHeight = 1;
+				let newHeight;
+
+				if(targetHeight >= 0) {
+					// upwards resize (move y up and make larger)
+					let targetY = movementInitCoords.elementY - diff.y
+					if(targetY >= 0) {
+						currentElement.setAttribute('y', targetY);
+						currentElement.setAttribute('height', targetHeight);
+					}
+				} else {
+					// downwards resize (make element larger keeping y)
+					maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y')) - borderWidth;
+					newHeight = Math.min(maxHeight, Math.max(minHeight, -targetHeight));
+					currentElement.setAttribute('height', newHeight);
+				}
+				placeSelectBox();
+			}
+
+			if(currentElement && isResizingVerticallyDown) {
 				movementInitCoords = movementInitCoords || {
 					clientY: e.clientY,
 					elementY: parseInt(currentElement.getAttribute('y')),
@@ -191,11 +225,6 @@
 					y: e.clientY - movementInitCoords.clientY,
 				};
 
-				console.log("final init", movementInitCoords);
-				console.log(e);
-				console.log(diff);
-
-
 				// Set new height value
 				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
 				let targetHeight = movementInitCoords.elementHeight + diff.y;
@@ -203,7 +232,6 @@
 				let minHeight = 1;
 				let newHeight;
 
-				console.log(targetHeight);
 				if(targetHeight >= 0) {
 					// downwards resize (make element larger keeping y)
 					maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y')) - borderWidth;
@@ -236,19 +264,22 @@
 			if(itemType === 'resize') {
 				let resizeDirection = e.target.getAttribute('data-location') || null;
 				if(resizeDirection === "down") {
-					isResizingVertically = true;
+					isResizingVerticallyDown = true;
+				}
+
+				if(resizeDirection === "up") {
+					isResizingVerticallyUp = true;
 				}
 			}
 		}
 
 		function handleUserMouseup(e) {
-			console.log("mouseup running");
 			// Reset all mousemove related state
 			isMovingElement = false;
 			movementInitCoords = null;
-			isResizingVertically = false;
-		  isResizingHorizontally = false;
-			console.log("movementInitCoords", movementInitCoords);
+			isResizingVerticallyDown = false;
+			isResizingVerticallyUp = false;
+		  isResizingHorizontallyLeft = false;
 		}
 
 		// Actions
@@ -370,8 +401,6 @@
 
 		function logElementPosition(element, label) {
 			let dimensions = element.getBoundingClientRect();
-			console.log(`${label} x: ${dimensions.x}`);
-			console.log(`${label} y: ${dimensions.y}`);
 		}
 	</script>
 
