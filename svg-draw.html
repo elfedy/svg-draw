@@ -62,9 +62,10 @@
 		let isMovingElement = false;
 
 		// resize
-		let isResizingHorizontallyLeft = false
-		let isResizingVerticallyDown = false
-		let isResizingVerticallyUp = false
+		let isResizingDown = false
+		let isResizingUp = false
+		let isResizingRight = false
+		let isResizingLeft = false
 
 		// Event listeners for controls
 
@@ -161,7 +162,7 @@
 			}
 
 			// Resize Vertically
-			if(currentElement && isResizingVerticallyUp) {
+			if(currentElement && isResizingUp) {
 				movementInitCoords = movementInitCoords || {
 					clientY: e.clientY,
 					elementY: parseInt(currentElement.getAttribute('y')),
@@ -195,7 +196,7 @@
 				placeSelectBox();
 			}
 
-			if(currentElement && isResizingVerticallyDown) {
+			if(currentElement && isResizingDown) {
 				movementInitCoords = movementInitCoords || {
 					clientY: e.clientY,
 					elementY: parseInt(currentElement.getAttribute('y')),
@@ -229,6 +230,78 @@
 
 				placeSelectBox();
 			}
+
+			if(currentElement && isResizingRight) {
+				movementInitCoords = movementInitCoords || {
+					clientX: e.clientX,
+					elementX: parseInt(currentElement.getAttribute('x')),
+					elementWidth: parseInt(currentElement.getAttribute('width')),
+				};
+
+				let diff = {
+					x: e.clientX - movementInitCoords.clientX,
+				};
+
+				// Set new width value
+				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
+				let targetWidth = movementInitCoords.elementWidth + diff.x;
+				let maxWidth;
+				let minWidth = 1;
+				let newWidth;
+
+				if(targetWidth >= 0) {
+					// right resize (make element larger keeping x)
+					maxWidth = parseInt(svg.getAttribute('width')) - parseInt(currentElement.getAttribute('x')) - borderWidth;
+					newWidth = Math.min(maxWidth, Math.max(minWidth, targetWidth));
+					currentElement.setAttribute('width', newWidth);
+				} else {
+					// left resize (move x left and make larger)
+					let targetX = movementInitCoords.elementX + targetWidth
+					// Ignore transform if implies going outside the canvass
+					if(targetX >= 0) {
+						currentElement.setAttribute('x', targetX);
+						currentElement.setAttribute('width', -targetWidth);
+					}
+				}
+
+				placeSelectBox();
+			}
+
+			if(currentElement && isResizingLeft) {
+				movementInitCoords = movementInitCoords || {
+					clientX: e.clientX,
+					elementX: parseInt(currentElement.getAttribute('x')),
+					elementWidth: parseInt(currentElement.getAttribute('width')),
+				};
+
+				let diff = {
+					x: movementInitCoords.clientX - e.clientX,
+				};
+
+				// Set new width value
+				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
+				let targetWidth = movementInitCoords.elementWidth + diff.x;
+				let maxWidth;
+				let minWidth = 1;
+				let newWidth;
+
+				if(targetWidth >= 0) {
+					// left resize (move x left and make larger)
+					let targetX = movementInitCoords.elementX - diff.x;
+					// Ignore transform if implies going outside the canvass
+					if(targetX >= 0) {
+						currentElement.setAttribute('x', targetX);
+						currentElement.setAttribute('width', Math.max(targetWidth, minWidth));
+					}
+				} else {
+					// right resize (make element larger keeping x)
+					maxWidth = parseInt(svg.getAttribute('width')) - parseInt(currentElement.getAttribute('x')) - borderWidth;
+					newWidth = Math.min(maxWidth, Math.max(minWidth, -targetWidth));
+					currentElement.setAttribute('width', newWidth);
+				}
+
+				placeSelectBox();
+			}
 		}
 
 		function handleElementClick(element) {
@@ -245,11 +318,19 @@
 			if(itemType === 'resize') {
 				let resizeDirection = e.target.getAttribute('data-location') || null;
 				if(resizeDirection === "down") {
-					isResizingVerticallyDown = true;
+					isResizingDown = true;
 				}
 
 				if(resizeDirection === "up") {
-					isResizingVerticallyUp = true;
+					isResizingUp = true;
+				}
+
+				if(resizeDirection === "right") {
+					isResizingRight = true;
+				}
+
+				if(resizeDirection === "left") {
+					isResizingLeft = true;
 				}
 			}
 		}
@@ -258,9 +339,10 @@
 			// Reset all mousemove related state
 			isMovingElement = false;
 			movementInitCoords = null;
-			isResizingVerticallyDown = false;
-			isResizingVerticallyUp = false;
-		  isResizingHorizontallyLeft = false;
+			isResizingDown = false;
+			isResizingUp = false;
+		  isResizingRight = false;
+		  isResizingLeft = false;
 		}
 
 		// Actions
