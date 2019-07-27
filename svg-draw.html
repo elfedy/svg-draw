@@ -72,7 +72,7 @@
 		document.body.addEventListener('click', handleUserClick);
 		document.body.addEventListener('mousemove', handleUserMousemove);
 		document.body.addEventListener('mouseup', handleUserMouseup);
-		document.body.addEventListener('keypress', handleUserKeypress);
+		document.body.addEventListener('keydown', handleUserKeydown);
 
 		xSize.addEventListener('change', (e) => svg.setAttribute('width', xSize.value));
 		ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value));
@@ -98,8 +98,9 @@
 
 		// Event handlers
 
-		function handleUserKeypress(e) {
-			if(currentElement !== null && e.charCode === 100) {
+		function handleUserKeydown(e) {
+			if(currentElement !== null && (e.keyCode === 8 || e.keyCode === 46)) {
+				e.preventDefault();
 				removeElement(currentElement);
 				currentElement = null;
 				placeSelectBox();
