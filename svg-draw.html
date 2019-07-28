@@ -18,10 +18,14 @@
 			</div>
 			<div class="controls">
 				<div class="controls__grid">
-					<button class="elem-button js-insert-rect">
+					<button class="elem-button js-insert-rect" data-item="action">
 						<svg height="30" width="30">
 							<rect x="5" y="5" height="20" width="20" fill="transparent" stroke="black" stroke-width="1" />
 						</svg>
+					</button>
+
+					<button class="elem-button js-insert-text" data-item="action">
+						A
 					</button>
 
 					<label>Grid Size</label>
@@ -50,6 +54,7 @@
 		let xSize = document.querySelector('.js-size-x');
 		let ySize = document.querySelector('.js-size-y');
 		let insertRect = document.querySelector('.js-insert-rect');
+		let insertText = document.querySelector('.js-insert-text');
 
 		/*
 		* GLOBAL STATE 
@@ -60,6 +65,9 @@
 
 		// movement
 		let isMovingElement = false;
+
+		// text
+		let textAction = null;
 
 		// resize
 		let isResizingDown = false
@@ -77,6 +85,7 @@
 		xSize.addEventListener('change', (e) => svg.setAttribute('width', xSize.value));
 		ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value));
 		insertRect.addEventListener('click', insertSquare);
+		insertText.addEventListener('click', insertTextElement);
 
 		// Insert elements
 
@@ -96,14 +105,41 @@
 			svg.appendChild(rect);
 		}
 
+		function insertTextElement() {
+			let text = document.createElementNS(svgns, 'text');
+			text.setAttribute('x', '100');
+			text.setAttribute('y', '100');
+			text.textContent  = 'Enter text';
+			currentElement = text;
+			textAction = 'initialInsert';
+			svg.appendChild(text);
+			console.log(currentElement);
+		}
+
 		// Event handlers
 
 		function handleUserKeydown(e) {
-			if(currentElement !== null && (e.keyCode === 8 || e.keyCode === 46)) {
-				e.preventDefault();
-				removeElement(currentElement);
-				currentElement = null;
-				placeSelectBox();
+			if(currentElement !== null) {
+				switch(textAction) {
+					case "initialInsert":
+						e.preventDefault();
+						currentElement.textContent = e.key;
+						textAction = "inserting";
+						break;
+					case "inserting":
+						e.preventDefault();
+						let currentText = currentElement.textContent;
+						let newText = currentText + e.key;
+						currentElement.textContent = newText;
+						break;
+					default:
+						if((e.keyCode === 8 || e.keyCode === 46)) {
+							e.preventDefault();
+							removeElement(currentElement);
+							currentElement = null;
+							placeSelectBox();
+						}
+				}
 			}
 		}
 
@@ -118,6 +154,9 @@
 					break;
 
 				case 'resize':
+					break;
+
+				case 'action':
 					break;
 
 				default:
