@@ -49,6 +49,8 @@
 		let svg = document.querySelector('.js-svg');
 		let svgns = "http://www.w3.org/2000/svg";
 
+		let nonTextKeys = ["Alt", "Dead", "Meta", "Shift"]
+
 		// Controls
 
 		let xSize = document.querySelector('.js-size-x');
@@ -122,15 +124,20 @@
 			if(currentElement !== null) {
 				switch(textAction) {
 					case "initialInsert":
-						e.preventDefault();
-						currentElement.textContent = e.key;
-						textAction = "inserting";
+						console.log(e);
+						if(!nonTextKeys.includes(e.key)) {
+							e.preventDefault();
+							currentElement.textContent = addKeyInput("", e.key);
+							textAction = "inserting";
+						}
 						break;
 					case "inserting":
-						e.preventDefault();
-						let currentText = currentElement.textContent;
-						let newText = currentText + e.key;
-						currentElement.textContent = newText;
+						if(!nonTextKeys.includes(e.key)) {
+							e.preventDefault();
+							let currentText = currentElement.textContent;
+							let newText = addKeyInput(currentText, e.key);
+							currentElement.textContent = newText;
+						}
 						break;
 					default:
 						if((e.keyCode === 8 || e.keyCode === 46)) {
@@ -498,6 +505,14 @@
 		function removeSelectBox() {
 			let selectBox = document.querySelector('div[data-item="selector"]') || null;
 			removeElement(selectBox);
+		}
+
+		function addKeyInput(currentText, newInput) {
+			if(newInput == "Backspace") {
+				return(currentText.length == 0 ? "" : currentText.slice(0, -1))
+			} else {
+				return(currentText + newInput)
+			}
 		}
 
 		// Debugging
