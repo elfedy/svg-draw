@@ -49,7 +49,8 @@
 		let svg = document.querySelector('.js-svg');
 		let svgns = "http://www.w3.org/2000/svg";
 
-		let nonTextKeys = ["Alt", "Dead", "Meta", "Shift"]
+		let nonTextKeys = ['Alt', 'Dead', 'Meta', 'Shift', 'Enter', 'Control']
+		let defaultFontSize = 14
 
 		// Controls
 
@@ -111,11 +112,12 @@
 			let text = document.createElementNS(svgns, 'text');
 			text.setAttribute('x', '100');
 			text.setAttribute('y', '100');
+			text.setAttribute('data-item', 'element');
+			text.setAttribute('style', `font-size: ${defaultFontSize}px`);
 			text.textContent  = 'Enter text';
 			currentElement = text;
 			textAction = 'initialInsert';
 			svg.appendChild(text);
-			console.log(currentElement);
 		}
 
 		// Event handlers
@@ -124,11 +126,11 @@
 			if(currentElement !== null) {
 				switch(textAction) {
 					case "initialInsert":
-						console.log(e);
 						if(!nonTextKeys.includes(e.key)) {
 							e.preventDefault();
 							currentElement.textContent = addKeyInput("", e.key);
 							textAction = "inserting";
+							placeSelectBox();
 						}
 						break;
 					case "inserting":
@@ -137,6 +139,7 @@
 							let currentText = currentElement.textContent;
 							let newText = addKeyInput(currentText, e.key);
 							currentElement.textContent = newText;
+							placeSelectBox();
 						}
 						break;
 					default:
@@ -164,11 +167,13 @@
 					break;
 
 				case 'action':
+					placeSelectBox();
 					break;
 
 				default:
 					// Deselect if target is not an item
 					currentElement = null;
+					textAction = null;
 					placeSelectBox();
 			}
 		}
@@ -392,7 +397,9 @@
 		  isResizingLeft = false;
 		}
 
-		// Actions
+		/***
+		* ACTIONS
+		***/
 
 		function selectElement(element) {
 			// Set current element
@@ -402,84 +409,127 @@
 
 		function placeSelectBox() {
 			if(currentElement) {
-				// Get dimensions
 				let padding = 5;
 				let dimensions = currentElement.getBoundingClientRect();
-				let boxX = dimensions.x - padding / 2;
-				let boxY = dimensions.y - padding / 2;
-				let boxWidth = dimensions.width + padding;
-				let boxHeight = dimensions.height + padding;
+				let intCoords = getAbsoluteCoords(currentElement);
+				switch(currentElement.localName) {
+					case "text": {
+						// Set box dimensions
+						let boxX = intCoords.x - padding / 2;
+						let boxY = intCoords.y - defaultFontSize;
+						let boxWidth = dimensions.width + padding;
+						let boxHeight = padding + defaultFontSize;
 
-				// resize square dims
-				let resizeLength = 10;
-				let resizeDims = {
-					up: {
-						x: boxWidth / 2 - resizeLength / 2,
-						y: - resizeLength / 2,
-					},
-					down: {
-						x: boxWidth / 2 - resizeLength / 2,
-						y: boxHeight - resizeLength / 2,
-					},
-					left: {
-						x: -resizeLength / 2,
-						y: boxHeight / 2 - resizeLength / 2,
-					},
-					right: {
-						x: boxWidth - resizeLength / 2,
-						y: boxHeight / 2 - resizeLength / 2,
-					},
-				}
-
-
-				// handle select box style
-				let selectBox = document.querySelector('div[data-item="selector"]') || null;
-				let selectBoxFound = selectBox ? true : false;
-				selectBox = selectBox || document.createElement('div');
-				selectBox.style = `
-					width: ${boxWidth}px;
-					height: ${boxHeight}px;
-					border: 1px solid #0a84ff;
-					background-color: transparent;
-					box-sizing: border-box;
-					position: absolute;
-					z-index: 10;
-					left: ${boxX}px;
-					top: ${boxY}px;
-				`
-
-				// handle resize rectangle style (Store in Array in case I need to insert them)
-				let rectangleSelectors = 
-					['up', 'down', 'left', 'right'].map(function(location) {
-						let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
-						let cursor = ['up', 'down'].includes(location) ? 'ns-resize' : 'ew-resize';
-
-						item.style = `
-							width: ${resizeLength}px;
-							height: ${resizeLength}px;
-							border: 1px solid #000;
-							background-color: #fff;
+						// handle select box style
+						let selectBox = document.querySelector('div[data-item="selector"]') || null;
+						let selectBoxFound = selectBox ? true : false;
+						selectBox = selectBox || document.createElement('div');
+						selectBox.style = `
+							width: ${boxWidth}px;
+							height: ${boxHeight}px;
+							border: 1px solid #0a84ff;
+							background-color: transparent;
 							box-sizing: border-box;
-							cursor: ${cursor};
 							position: absolute;
-							z-index: 20;
-							left: ${resizeDims[location].x}px;
-							top: ${resizeDims[location].y}px;
+							z-index: 10;
+							left: ${boxX}px;
+							top: ${boxY}px;
 						`
 
-						return item
-					})
+						// init select box if not found
+						if(!selectBoxFound) {
+							selectBox.setAttribute('data-item', 'selector');
+							selectBox.addEventListener('mousedown', handleElementMousedown);
+						}
 
+						document.body.appendChild(selectBox);
 
-				// init select box if not found
-				if(!selectBoxFound) {
-					selectBox.setAttribute('data-item', 'selector');
-					selectBox.addEventListener('mousedown', handleElementMousedown);
-					rectangleSelectors.forEach(function(rect) {
-						selectBox.appendChild(rect);
-					})
-					document.body.appendChild(selectBox);
+					}	break;
+
+					case "rect": {
+						// Set box dimensions
+						let boxX = intCoords.x - padding / 2;
+						let boxY = intCoords.y - padding / 2;
+						let boxWidth = dimensions.width + padding;
+						let boxHeight = dimensions.height + padding;
+
+						// resize square dims
+						let resizeLength = 10;
+						let resizeDims = {
+							up: {
+								x: boxWidth / 2 - resizeLength / 2,
+								y: - resizeLength / 2,
+							},
+							down: {
+								x: boxWidth / 2 - resizeLength / 2,
+								y: boxHeight - resizeLength / 2,
+							},
+							left: {
+								x: -resizeLength / 2,
+								y: boxHeight / 2 - resizeLength / 2,
+							},
+							right: {
+								x: boxWidth - resizeLength / 2,
+								y: boxHeight / 2 - resizeLength / 2,
+							},
+						}
+
+						// handle select box style
+						let selectBox = document.querySelector('div[data-item="selector"]') || null;
+						let selectBoxFound = selectBox ? true : false;
+						selectBox = selectBox || document.createElement('div');
+						selectBox.style = `
+							width: ${boxWidth}px;
+							height: ${boxHeight}px;
+							border: 1px solid #0a84ff;
+							background-color: transparent;
+							box-sizing: border-box;
+							position: absolute;
+							z-index: 10;
+							left: ${boxX}px;
+							top: ${boxY}px;
+						`
+
+						// handle resize rectangle style (Store in Array in case I need to insert them)
+						let rectangleSelectors = 
+							['up', 'down', 'left', 'right'].map(function(location) {
+								let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
+								let cursor = ['up', 'down'].includes(location) ? 'ns-resize' : 'ew-resize';
+
+								item.style = `
+									width: ${resizeLength}px;
+									height: ${resizeLength}px;
+									border: 1px solid #000;
+									background-color: #fff;
+									box-sizing: border-box;
+									cursor: ${cursor};
+									position: absolute;
+									z-index: 20;
+									left: ${resizeDims[location].x}px;
+									top: ${resizeDims[location].y}px;
+								`
+
+								return item
+							})
+
+						// init select box if not found
+						if(!selectBoxFound) {
+							selectBox.setAttribute('data-item', 'selector');
+							selectBox.addEventListener('mousedown', handleElementMousedown);
+
+							rectangleSelectors.forEach(function(rect) {
+								selectBox.appendChild(rect);
+							})
+						}
+
+						document.body.appendChild(selectBox);
+					} break;
+
+					default: {
+					}
 				}
+
+
 			} else {
 				// Delete select box if found
 				removeSelectBox()
@@ -495,7 +545,27 @@
 			return square;
 		}
 
-		// Helpers
+		/***
+		* HELPERS
+		***/
+
+		function getRelativeCoords(element) {
+			return {
+				x: parseInt(element.getAttribute('x')),
+				y: parseInt(element.getAttribute('y')),
+			}
+		}
+
+		function getAbsoluteCoords(element) {
+			let relCoords = getRelativeCoords(element);
+			let svgCoords = svg.getBoundingClientRect(svg);
+
+			return {
+				x: relCoords.x + svgCoords.x,
+				y: relCoords.y + svgCoords.y,
+			}
+		}
+
 		function removeElement(element) {
 			if(element) {
 				element.parentNode.removeChild(element);
@@ -509,7 +579,7 @@
 
 		function addKeyInput(currentText, newInput) {
 			if(newInput == "Backspace") {
-				return(currentText.length == 0 ? "" : currentText.slice(0, -1))
+				return(currentText.length === 0 ? "" : currentText.slice(0, -1))
 			} else {
 				return(currentText + newInput)
 			}
@@ -519,6 +589,7 @@
 
 		function logElementPosition(element, label) {
 			let dimensions = element.getBoundingClientRect();
+			console.log(dimensions);
 		}
 	</script>
 
