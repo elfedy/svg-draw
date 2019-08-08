@@ -192,14 +192,16 @@
 				let diff = {
 					x: e.clientX - movementInitCoords.clientX,
 					y: e.clientY - movementInitCoords.clientY,
-				}
+				};
+
+				let relativeCoords = getRelativeCoords(currentElement);
 
 				// Get new x/y values
-				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
+				let borderWidth = parseInt(currentElement.getAttribute('stroke-width') || 0);
 				let minX = 0 + borderWidth;
-				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - parseInt(currentElement.getAttribute('width'));
+				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - relativeCoords.width;
 				let minY = 0;// + borderWidth;
-				let maxY = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('height')) - borderWidth;
+				let maxY = parseInt(svg.getAttribute('height')) - relativeCoords.height - borderWidth;
 
 				let targetX = movementInitCoords.elementX + diff.x;
 				let newX = Math.min(maxX, Math.max(minX, targetX));
@@ -550,9 +552,27 @@
 		***/
 
 		function getRelativeCoords(element) {
+			let width
+			let height
+
+			switch(element.localName) {
+					case 'rect':
+						width = parseInt(element.getAttribute('width'));
+						height = parseInt(element.getAttribute('height'));
+						break;
+
+					case 'text':
+						clientBoundRect = element.getBoundingClientRect();
+						width = clientBoundRect.width;
+						height = clientBoundRect.height;
+						break;
+			}
+
 			return {
 				x: parseInt(element.getAttribute('x')),
 				y: parseInt(element.getAttribute('y')),
+				width: width,
+				height: height,
 			}
 		}
 
@@ -560,9 +580,12 @@
 			let relCoords = getRelativeCoords(element);
 			let svgCoords = svg.getBoundingClientRect(svg);
 
+
 			return {
 				x: relCoords.x + svgCoords.x,
 				y: relCoords.y + svgCoords.y,
+				width: relCoords.width,
+				height: relCoords.height,
 			}
 		}
 
