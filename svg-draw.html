@@ -156,6 +156,11 @@
 
 		function handleUserClick(e) {
 			let itemType = e.target.getAttribute('data-item') || null;
+
+			if(itemType) {
+				e.preventDefault();
+			}
+
 			switch(itemType) {
 				case 'element':
 					handleElementClick(e.target);
@@ -180,6 +185,10 @@
 		}
 
 		function handleUserMousemove(e) {
+			if(currentElement) {
+				e.preventDefault();
+			}
+
 			// Move element
 			if(currentElement && isMovingElement) {
 				movementInitCoords = movementInitCoords || {
