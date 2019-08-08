@@ -118,6 +118,7 @@
 			currentElement = text;
 			textAction = 'initialInsert';
 			svg.appendChild(text);
+			removeSelectBox();
 		}
 
 		// Event handlers
@@ -406,6 +407,7 @@
 		function selectElement(element) {
 			// Set current element
 			currentElement = element;
+			removeSelectBox();
 			placeSelectBox();
 		}
 
