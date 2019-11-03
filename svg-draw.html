@@ -18,14 +18,16 @@
 			</div>
 			<div class="controls">
 				<div class="controls__grid">
-					<button class="elem-button js-insert-rect" data-item="action">
-						<svg height="30" width="30">
-							<rect x="5" y="5" height="20" width="20" fill="transparent" stroke="black" stroke-width="1" />
-						</svg>
+					<button class="elem-button" data-item="insert" data-element="rect">
+						Rect
 					</button>
 
-					<button class="elem-button js-insert-text" data-item="action">
-						A
+					<button class="elem-button" data-item="insert" data-element="line">
+						Line
+					</button>
+
+					<button class="elem-button" data-item="insert" data-element="text">
+						Text
 					</button>
 
 					<label>Grid Size</label>
@@ -44,7 +46,9 @@
 	</body>
 
 	<script>
-		// Main canvas and definitions
+		/*
+		* MAIN CANVAS AND DEFINITIONS
+		*/
 
 		let svg = document.querySelector('.js-svg');
 		let svgns = "http://www.w3.org/2000/svg";
@@ -52,12 +56,12 @@
 		let nonTextKeys = ['Alt', 'Dead', 'Meta', 'Shift', 'Enter', 'Control']
 		let defaultFontSize = 14
 
-		// Controls
+		/*
+		* CONTROLS
+		*/
 
 		let xSize = document.querySelector('.js-size-x');
 		let ySize = document.querySelector('.js-size-y');
-		let insertRect = document.querySelector('.js-insert-rect');
-		let insertText = document.querySelector('.js-insert-text');
 
 		/*
 		* GLOBAL STATE 
@@ -68,6 +72,9 @@
 
 		// movement
 		let isMovingElement = false;
+		
+		// line
+		let lineAction = null 
 
 		// text
 		let textAction = null;
@@ -78,7 +85,9 @@
 		let isResizingRight = false
 		let isResizingLeft = false
 
-		// Event listeners for controls
+		/*
+		* EVENT LISTENERS FOR CONTROLS
+		*/
 
 		document.body.addEventListener('click', handleUserClick);
 		document.body.addEventListener('mousemove', handleUserMousemove);
@@ -87,41 +96,11 @@
 
 		xSize.addEventListener('change', (e) => svg.setAttribute('width', xSize.value));
 		ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value));
-		insertRect.addEventListener('click', insertSquare);
-		insertText.addEventListener('click', insertTextElement);
-
-		// Insert elements
-
-		function insertSquare() {
-			let rect = document.createElementNS(svgns, 'rect');
-			rect.setAttribute('height', '100');
-			rect.setAttribute('width', '100');
-			rect.setAttribute('x', '100');
-			rect.setAttribute('y', '100');
-			rect.setAttribute('fill', 'transparent');
-			rect.setAttribute('stroke', 'black');
-			rect.setAttribute('stroke-width', '1');
-			rect.setAttribute('data-item', 'element');
-			rect.class = 'svg-rect';
 
 
-			svg.appendChild(rect);
-		}
-
-		function insertTextElement() {
-			let text = document.createElementNS(svgns, 'text');
-			text.setAttribute('x', '100');
-			text.setAttribute('y', '100');
-			text.setAttribute('data-item', 'element');
-			text.setAttribute('style', `font-size: ${defaultFontSize}px`);
-			text.textContent  = 'Enter text';
-			currentElement = text;
-			textAction = 'initialInsert';
-			svg.appendChild(text);
-			removeSelectBox();
-		}
-
-		// Event handlers
+		/*
+		* EVENT HANDLERS
+		*/
 
 		function handleUserKeydown(e) {
 			if(currentElement !== null) {
@@ -161,32 +140,91 @@
 				e.preventDefault();
 			}
 
-			switch(itemType) {
-				case 'element':
-					handleElementClick(e.target);
-					break;
-				
-				case 'selector':
-					break;
+			if(lineAction && lineAction.status === "beforeInsert") {
+				let svgCoords = svg.getBoundingClientRect();
+				let relativeX = e.clientX - svgCoords.x;
+				let relativeY = e.clientY - svgCoords.y
 
-				case 'resize':
-					break;
+				let isInsideSvg = true
 
-				case 'action':
-					placeSelectBox();
-					break;
+				if(isInsideSvg) {
+					let line = document.createElementNS(svgns, 'line');
+					line.setAttribute('x1', relativeX.toString());
+					line.setAttribute('y1', relativeY.toString());
+					line.setAttribute('x2', relativeX.toString());
+					line.setAttribute('y2', relativeY.toString());
+					line.setAttribute('stroke', 'black');
+					line.setAttribute('stroke-width', '1');
+					line.setAttribute('data-item', 'element');
 
-				default:
-					// Deselect if target is not an item
-					currentElement = null;
-					textAction = null;
-					placeSelectBox();
+					lineAction = {status: "inserting", target: line};
+					svg.appendChild(line);
+				}
+			} else if(lineAction && lineAction.status === "inserting") {
+				lineAction = null;
+			} else {
+				switch(itemType) {
+					case 'element':
+						handleElementClick(e.target);
+						break;
+					
+					case 'selector':
+						break;
+
+					case 'resize':
+						break;
+
+					case 'insert':
+						let element = e.target.getAttribute('data-element') || null
+						switch(element) {
+								case 'rect':
+									insertRectElement();
+									break;
+
+								case 'line':
+									insertLineElement();
+									break;
+
+								case 'text':
+									insertTextElement();
+									break;
+						}
+						placeSelectBox();
+						break;
+
+					default:
+						// Deselect if target is not an item
+						currentElement = null;
+						textAction = null;
+						lineAction = null;
+						placeSelectBox();
+				}
+			}
+
+			
+			// Main status according to current action
+			main = document.querySelector('main')
+			if(lineAction && lineAction.status == "beforeInsert") {
+				document.querySelector('main').className = 'main--inserting';
+			} else {
+				main.className = '';
 			}
 		}
 
 		function handleUserMousemove(e) {
 			if(currentElement) {
 				e.preventDefault();
+			}
+
+			if(lineAction && lineAction.status === "inserting") {
+				let svgCoords = svg.getBoundingClientRect();
+				let relativeX = e.clientX - svgCoords.x;
+				let relativeY = e.clientY - svgCoords.y
+
+				let line = lineAction.target
+
+				line.setAttribute('x2', relativeX.toString());
+				line.setAttribute('y2', relativeY.toString());
 			}
 
 			// Move element
@@ -409,9 +447,44 @@
 		  isResizingLeft = false;
 		}
 
-		/***
+		/*
+		* INSERT ELEMENTS
+		*/
+
+		function insertRectElement() {
+			let rect = document.createElementNS(svgns, 'rect');
+			rect.setAttribute('height', '100');
+			rect.setAttribute('width', '100');
+			rect.setAttribute('x', '100');
+			rect.setAttribute('y', '100');
+			rect.setAttribute('fill', 'transparent');
+			rect.setAttribute('stroke', 'black');
+			rect.setAttribute('stroke-width', '1');
+			rect.setAttribute('data-item', 'element');
+
+			svg.appendChild(rect);
+		}
+
+		function insertTextElement() {
+			let text = document.createElementNS(svgns, 'text');
+			text.setAttribute('x', '100');
+			text.setAttribute('y', '100');
+			text.setAttribute('data-item', 'element');
+			text.setAttribute('style', `font-size: ${defaultFontSize}px`);
+			text.textContent  = 'Enter text';
+			currentElement = text;
+			textAction = 'initialInsert';
+			svg.appendChild(text);
+			removeSelectBox();
+		}
+
+		function insertLineElement() {
+			lineAction = {status: "beforeInsert"};
+		}
+
+		/*
 		* ACTIONS
-		***/
+		*/
 
 		function selectElement(element) {
 			// Set current element
@@ -558,9 +631,9 @@
 			return square;
 		}
 
-		/***
+		/*
 		* HELPERS
-		***/
+		*/
 
 		function getRelativeCoords(element) {
 			let width
@@ -647,6 +720,10 @@
 			background-color: #eaeaea;
 		}
 
+		.main--inserting {
+			cursor: crosshair;
+		}
+
 		.canvas-container {
 			position: absolute;
 			top: 50px;
@@ -673,6 +750,7 @@
 			display: block;
 			background-color: transparent;
 			border: none;
+			padding: 10px 0;
 			outline: none;
 			cursor: pointer;
 		}
