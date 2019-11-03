@@ -498,6 +498,7 @@
 				let padding = 5;
 				let dimensions = currentElement.getBoundingClientRect();
 				let intCoords = getAbsoluteCoords(currentElement);
+
 				switch(currentElement.localName) {
 					case "text": {
 						// Set box dimensions
@@ -505,6 +506,41 @@
 						let boxY = intCoords.y - defaultFontSize;
 						let boxWidth = dimensions.width + padding;
 						let boxHeight = padding + defaultFontSize;
+
+						// handle select box style
+						let selectBox = document.querySelector('div[data-item="selector"]') || null;
+						let selectBoxFound = selectBox ? true : false;
+						selectBox = selectBox || document.createElement('div');
+						selectBox.style = `
+							width: ${boxWidth}px;
+							height: ${boxHeight}px;
+							border: 1px solid #0a84ff;
+							background-color: transparent;
+							box-sizing: border-box;
+							position: absolute;
+							z-index: 10;
+							left: ${boxX}px;
+							top: ${boxY}px;
+						`
+
+						// init select box if not found
+						if(!selectBoxFound) {
+							selectBox.setAttribute('data-item', 'selector');
+							selectBox.addEventListener('mousedown', handleElementMousedown);
+						}
+
+						document.body.appendChild(selectBox);
+
+					}	break;
+
+					case "line": {
+						console.log("inside line draw");
+						console.log(intCoords);
+						// Set box dimensions
+						let boxX = intCoords.x - padding / 2;
+						let boxY = intCoords.y - padding / 2;
+						let boxWidth = dimensions.width + padding;
+						let boxHeight = dimensions.height + padding;
 
 						// handle select box style
 						let selectBox = document.querySelector('div[data-item="selector"]') || null;
@@ -636,25 +672,39 @@
 		*/
 
 		function getRelativeCoords(element) {
+			let x
+			let y
 			let width
 			let height
 
 			switch(element.localName) {
 					case 'rect':
+						x = parseInt(element.getAttribute('x'));
+						y = parseInt(element.getAttribute('y'));
 						width = parseInt(element.getAttribute('width'));
 						height = parseInt(element.getAttribute('height'));
 						break;
 
 					case 'text':
 						clientBoundRect = element.getBoundingClientRect();
+						x = parseInt(element.getAttribute('x'));
+						y = parseInt(element.getAttribute('y'));
+						width = clientBoundRect.width;
+						height = clientBoundRect.height;
+						break;
+
+					case 'line':
+						clientBoundRect = element.getBoundingClientRect();
+						x = parseInt(element.getAttribute('x1'));
+						y = parseInt(element.getAttribute('y1'));
 						width = clientBoundRect.width;
 						height = clientBoundRect.height;
 						break;
 			}
 
 			return {
-				x: parseInt(element.getAttribute('x')),
-				y: parseInt(element.getAttribute('y')),
+				x: x,
+				y: y,
 				width: width,
 				height: height,
 			}
