@@ -54,8 +54,9 @@
 		let svgns = "http://www.w3.org/2000/svg";
 
 		let NON_TEXT_KEYS = ['Alt', 'Dead', 'Meta', 'Shift', 'Enter', 'Control']
-		let DEFAUKT_FONT_SIZE = 14
+		let DEFAULT_FONT_SIZE = 14
 		let RESIZE_RECTANGLE_LENGTH = 10;
+		let DEFAULT_LINE_WIDTH = 1
 
 		/*
 		* CONTROLS
@@ -156,7 +157,7 @@
 					line.setAttribute('x2', relativeX.toString());
 					line.setAttribute('y2', relativeY.toString());
 					line.setAttribute('stroke', 'black');
-					line.setAttribute('stroke-width', '1');
+					line.setAttribute('stroke-width', DEFAULT_LINE_WIDTH.toString());
 					line.setAttribute('data-item', 'element');
 
 					lineAction = {status: "inserting", target: line};
@@ -461,7 +462,7 @@
 			rect.setAttribute('y', '100');
 			rect.setAttribute('fill', 'transparent');
 			rect.setAttribute('stroke', 'black');
-			rect.setAttribute('stroke-width', '1');
+			rect.setAttribute('stroke-width', DEFAULT_LINE_WIDTH.toString());
 			rect.setAttribute('data-item', 'element');
 
 			svg.appendChild(rect);
@@ -567,7 +568,7 @@
 						selectBox.style = `
 							width: ${boxWidth}px;
 							height: ${boxHeight}px;
-							border: 1px solid #0a84ff;
+							//border: 1px solid #0a84ff;
 							background-color: transparent;
 							box-sizing: border-box;
 							position: absolute;
