@@ -53,8 +53,9 @@
 		let svg = document.querySelector('.js-svg');
 		let svgns = "http://www.w3.org/2000/svg";
 
-		let nonTextKeys = ['Alt', 'Dead', 'Meta', 'Shift', 'Enter', 'Control']
-		let defaultFontSize = 14
+		let NON_TEXT_KEYS = ['Alt', 'Dead', 'Meta', 'Shift', 'Enter', 'Control']
+		let DEFAUKT_FONT_SIZE = 14
+		let RESIZE_RECTANGLE_LENGTH = 10;
 
 		/*
 		* CONTROLS
@@ -106,7 +107,7 @@
 			if(currentElement !== null) {
 				switch(textAction) {
 					case "initialInsert":
-						if(!nonTextKeys.includes(e.key)) {
+						if(!NON_TEXT_KEYS.includes(e.key)) {
 							e.preventDefault();
 							currentElement.textContent = addKeyInput("", e.key);
 							textAction = "inserting";
@@ -114,7 +115,7 @@
 						}
 						break;
 					case "inserting":
-						if(!nonTextKeys.includes(e.key)) {
+						if(!NON_TEXT_KEYS.includes(e.key)) {
 							e.preventDefault();
 							let currentText = currentElement.textContent;
 							let newText = addKeyInput(currentText, e.key);
@@ -145,6 +146,7 @@
 				let relativeX = e.clientX - svgCoords.x;
 				let relativeY = e.clientY - svgCoords.y
 
+				// TODO(fede): Detect when click is not inside the canvas
 				let isInsideSvg = true
 
 				if(isInsideSvg) {
@@ -470,7 +472,7 @@
 			text.setAttribute('x', '100');
 			text.setAttribute('y', '100');
 			text.setAttribute('data-item', 'element');
-			text.setAttribute('style', `font-size: ${defaultFontSize}px`);
+			text.setAttribute('style', `font-size: ${DEFAULT_FONT_SIZE}px`);
 			text.textContent  = 'Enter text';
 			currentElement = text;
 			textAction = 'initialInsert';
@@ -503,9 +505,9 @@
 					case "text": {
 						// Set box dimensions
 						let boxX = intCoords.x - padding / 2;
-						let boxY = intCoords.y - defaultFontSize;
+						let boxY = intCoords.y - DEFAULT_FONT_SIZE;
 						let boxWidth = dimensions.width + padding;
-						let boxHeight = padding + defaultFontSize;
+						let boxHeight = padding + DEFAULT_FONT_SIZE;
 
 						// handle select box style
 						let selectBox = document.querySelector('div[data-item="selector"]') || null;
@@ -534,11 +536,27 @@
 					}	break;
 
 					case "line": {
-						console.log("inside line draw");
-						console.log(intCoords);
+						let relPositionsLine = {
+							x1: parseInt(currentElement.getAttribute("x1")),
+							y1: parseInt(currentElement.getAttribute("y1")),
+							x2: parseInt(currentElement.getAttribute("x2")),
+							y2: parseInt(currentElement.getAttribute("y2")),
+						}
+						let svgCoords = svg.getBoundingClientRect(svg);
+						let absPositionsLine = {
+							x1: parseInt(currentElement.getAttribute("x1")) + svgCoords.x,
+							y1: parseInt(currentElement.getAttribute("y1")) + svgCoords.y,
+							x2: parseInt(currentElement.getAttribute("x2")) + svgCoords.x,
+							y2: parseInt(currentElement.getAttribute("y2")) + svgCoords.y,
+						}
+
+						let lineMinX = Math.min(absPositionsLine.x1, absPositionsLine.x2)
+						let lineMinY = Math.min(absPositionsLine.y1, absPositionsLine.y2)
+
 						// Set box dimensions
-						let boxX = intCoords.x - padding / 2;
-						let boxY = intCoords.y - padding / 2;
+						padding = 0;
+						let boxX = lineMinX - padding / 2;
+						let boxY = lineMinY - padding / 2;
 						let boxWidth = dimensions.width + padding;
 						let boxHeight = dimensions.height + padding;
 
@@ -558,10 +576,50 @@
 							top: ${boxY}px;
 						`
 
+						// resize square dims
+						let resizeLength = RESIZE_RECTANGLE_LENGTH;
+						// NOTE(fede): positioned relative to the selection rectangle
+						let resizeDims = {
+							start: {
+								x: absPositionsLine.x1 - boxX - resizeLength / 2,
+								y: absPositionsLine.y1 - boxY - resizeLength / 2,
+							},
+							end: {
+								x: absPositionsLine.x2 - boxX - resizeLength / 2,
+								y: absPositionsLine.y2 - boxY - resizeLength / 2,
+							},
+						}
+
+						let rectangleSelectors = 
+							['start', 'end'].map(function(location) {
+								let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
+								// TODO(fede): handle different cursors
+								let cursor = 'nwse-resize';
+
+								item.style = `
+									width: ${resizeLength}px;
+									height: ${resizeLength}px;
+									border: 1px solid #000;
+									background-color: #fff;
+									box-sizing: border-box;
+									cursor: ${cursor};
+									position: absolute;
+									z-index: 20;
+									left: ${resizeDims[location].x}px;
+									top: ${resizeDims[location].y}px;
+								`
+
+								return item
+							})
+
 						// init select box if not found
 						if(!selectBoxFound) {
 							selectBox.setAttribute('data-item', 'selector');
 							selectBox.addEventListener('mousedown', handleElementMousedown);
+
+							rectangleSelectors.forEach(function(rect) {
+								selectBox.appendChild(rect);
+							})
 						}
 
 						document.body.appendChild(selectBox);
@@ -576,7 +634,7 @@
 						let boxHeight = dimensions.height + padding;
 
 						// resize square dims
-						let resizeLength = 10;
+						let resizeLength = RESIZE_RECTANGLE_LENGTH;
 						let resizeDims = {
 							up: {
 								x: boxWidth / 2 - resizeLength / 2,
