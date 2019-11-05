@@ -232,73 +232,134 @@
 
 			// Move element
 			if(currentElement && isMovingElement) {
-				movementInitCoords = movementInitCoords || {
-					clientX: e.clientX, 
-					clientY: e.clientY,
-					elementX: parseInt(currentElement.getAttribute('x')),
-					elementY: parseInt(currentElement.getAttribute('y')),
-				};
+				switch(currentElement.localName) {
+					case "line": {
+						movementInitCoords = movementInitCoords || {
+							clientX: e.clientX, 
+							clientY: e.clientY,
+							elementX1: parseInt(currentElement.getAttribute('x1')),
+							elementY1: parseInt(currentElement.getAttribute('y1')),
+							elementX2: parseInt(currentElement.getAttribute('x2')),
+							elementY2: parseInt(currentElement.getAttribute('y2')),
+						};
 
 
-				let diff = {
-					x: e.clientX - movementInitCoords.clientX,
-					y: e.clientY - movementInitCoords.clientY,
-				};
+						let mouseDiff = {
+							x: e.clientX - movementInitCoords.clientX,
+							y: e.clientY - movementInitCoords.clientY,
+						};
 
-				let relativeCoords = getRelativeCoords(currentElement);
+						//NOTE(fede): this refers to the max value a point can have and not the actual x and
+						// y values of the svg element as done with other elements
 
-				// Get new x/y values
-				let borderWidth = parseInt(currentElement.getAttribute('stroke-width') || 0);
-				let minX = 0 + borderWidth;
-				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - relativeCoords.width;
-				let minY = 0;// + borderWidth;
-				let maxY = parseInt(svg.getAttribute('height')) - relativeCoords.height - borderWidth;
+						let minX = 0;
+						let maxX = parseInt(svg.getAttribute('width'));;
+						let minY = 0;
+						let maxY = parseInt(svg.getAttribute('height'));
 
-				let targetX = movementInitCoords.elementX + diff.x;
-				let newX = Math.min(maxX, Math.max(minX, targetX));
-				let targetY = movementInitCoords.elementY + diff.y;
-				let newY = Math.min(maxY, Math.max(minY, targetY));
+						let minPointX = Math.min(movementInitCoords.elementX1, movementInitCoords.elementX2);
+						let minPointY = Math.min(movementInitCoords.elementY1, movementInitCoords.elementY2);
+						let maxPointX = Math.max(movementInitCoords.elementX1, movementInitCoords.elementX2);
+						let maxPointY = Math.max(movementInitCoords.elementY1, movementInitCoords.elementY2);
 
-				// Set new position
-				currentElement.setAttribute('x', newX);
-				currentElement.setAttribute('y', newY);
+						let maxDiffX = maxX - maxPointX;
+						let minDiffX = minX - minPointX;
+						let maxDiffY = maxY - maxPointY;
+						let minDiffY = minY - minPointY;
 
-				placeSelectBox();
+						let movementDiff = {
+							x: Math.min(maxDiffX, Math.max(minDiffX, mouseDiff.x)),
+							y: Math.min(maxDiffY, Math.max(minDiffY, mouseDiff.y)),
+						}
+
+						let newPositions = {
+							x1: movementInitCoords.elementX1 + movementDiff.x,
+							y1: movementInitCoords.elementY1 + movementDiff.y,
+							x2: movementInitCoords.elementX2 + movementDiff.x,
+							y2: movementInitCoords.elementY2 + movementDiff.y,
+						}
+
+
+						// Set new position
+						currentElement.setAttribute('x1', newPositions.x1);
+						currentElement.setAttribute('y1', newPositions.y1);
+						currentElement.setAttribute('x2', newPositions.x2);
+						currentElement.setAttribute('y2', newPositions.y2);
+
+						placeSelectBox();
+
+					} break;
+
+					default: {
+						movementInitCoords = movementInitCoords || {
+							clientX: e.clientX, 
+							clientY: e.clientY,
+							elementX: parseInt(currentElement.getAttribute('x')),
+							elementY: parseInt(currentElement.getAttribute('y')),
+						};
+
+
+						let diff = {
+							x: e.clientX - movementInitCoords.clientX,
+							y: e.clientY - movementInitCoords.clientY,
+						};
+
+						let relativeCoords = getRelativeCoords(currentElement);
+
+						// Get new x/y values
+						let borderWidth = parseInt(currentElement.getAttribute('stroke-width') || 0);
+						let minX = 0 + borderWidth;
+						let maxX = parseInt(svg.getAttribute('width')) - borderWidth - relativeCoords.width;
+						let minY = 0;// + borderWidth;
+						let maxY = parseInt(svg.getAttribute('height')) - relativeCoords.height - borderWidth;
+
+						let targetX = movementInitCoords.elementX + diff.x;
+						let newX = Math.min(maxX, Math.max(minX, targetX));
+						let targetY = movementInitCoords.elementY + diff.y;
+						let newY = Math.min(maxY, Math.max(minY, targetY));
+
+						// Set new position
+						currentElement.setAttribute('x', newX);
+						currentElement.setAttribute('y', newY);
+
+						placeSelectBox();
+					}
+				}
 			}
 
-			// Resize Vertically
-			if(currentElement && isResizingUp) {
-				movementInitCoords = movementInitCoords || {
-					clientY: e.clientY,
-					elementY: parseInt(currentElement.getAttribute('y')),
-					elementHeight: parseInt(currentElement.getAttribute('height')),
-				};
+				// Resize Vertically
+				if(currentElement && isResizingUp) {
+					movementInitCoords = movementInitCoords || {
+						clientY: e.clientY,
+						elementY: parseInt(currentElement.getAttribute('y')),
+						elementHeight: parseInt(currentElement.getAttribute('height')),
+					};
 
-				let diff = {
-					y: movementInitCoords.clientY - e.clientY,
-				};
+					let diff = {
+						y: movementInitCoords.clientY - e.clientY,
+					};
 
-				// Set new height value
-				let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
-				let targetHeight = movementInitCoords.elementHeight + diff.y;
-				let maxHeight;
-				let minHeight = 1;
-				let newHeight;
+					// Set new height value
+					let borderWidth = parseInt(currentElement.getAttribute('stroke-width'));
+					let targetHeight = movementInitCoords.elementHeight + diff.y;
+					let maxHeight;
+					let minHeight = 1;
+					let newHeight;
 
-				if(targetHeight >= 0) {
-					// upwards resize (move y up and make larger)
-					let targetY = movementInitCoords.elementY - diff.y
-					if(targetY >= 0) {
-						currentElement.setAttribute('y', targetY);
-						currentElement.setAttribute('height', targetHeight);
+					if(targetHeight >= 0) {
+						// upwards resize (move y up and make larger)
+						let targetY = movementInitCoords.elementY - diff.y
+						if(targetY >= 0) {
+							currentElement.setAttribute('y', targetY);
+							currentElement.setAttribute('height', targetHeight);
+						}
+					} else {
+						// downwards resize (make element larger keeping y)
+						maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y')) - borderWidth;
+						newHeight = Math.min(maxHeight, Math.max(minHeight, -targetHeight));
+						currentElement.setAttribute('height', newHeight);
 					}
-				} else {
-					// downwards resize (make element larger keeping y)
-					maxHeight = parseInt(svg.getAttribute('height')) - parseInt(currentElement.getAttribute('y')) - borderWidth;
-					newHeight = Math.min(maxHeight, Math.max(minHeight, -targetHeight));
-					currentElement.setAttribute('height', newHeight);
-				}
-				placeSelectBox();
+					placeSelectBox();
 			}
 
 			if(currentElement && isResizingDown) {
