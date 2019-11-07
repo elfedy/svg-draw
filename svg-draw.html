@@ -6,9 +6,9 @@
 	<body>
 		<main>
 			<div class="canvas-container">
-				<svg version="1.1" 
-					baseProfile="full" 
-					width="500" 
+				<svg version="1.1"
+					baseProfile="full"
+					width="500"
 					height="500"
 					xmlns="http://www.w3.org/2000/svg"
 					class="js-svg"
@@ -66,7 +66,7 @@
 		let ySize = document.querySelector('.js-size-y');
 
 		/*
-		* GLOBAL STATE 
+		* GLOBAL STATE
 		*/
 
 		let currentElement = null;
@@ -74,7 +74,7 @@
 
 		// movement
 		let isMovingElement = false;
-		
+	
 		// line
 		let lineAction = null 
 
@@ -82,10 +82,12 @@
 		let textAction = null;
 
 		// resize
-		let isResizingDown = false
-		let isResizingUp = false
-		let isResizingRight = false
-		let isResizingLeft = false
+		let isResizingDown = false;
+		let isResizingUp = false;
+		let isResizingRight = false;
+		let isResizingLeft = false;
+		let isResizingPoint1 = false;
+		let isResizingPoint2 = false;
 
 		/*
 		* EVENT LISTENERS FOR CONTROLS
@@ -224,10 +226,18 @@
 				let relativeX = e.clientX - svgCoords.x;
 				let relativeY = e.clientY - svgCoords.y
 
+				let minX = 0;
+				let maxX = parseInt(svg.getAttribute('width'));;
+				let minY = 0;
+				let maxY = parseInt(svg.getAttribute('height'));
+
+				let newX = capToBoundaries(relativeX, minX, maxX);
+				let newY = capToBoundaries(relativeY, minY, maxY);
+
 				let line = lineAction.target
 
-				line.setAttribute('x2', relativeX.toString());
-				line.setAttribute('y2', relativeY.toString());
+				line.setAttribute('x1', newX.toString());
+				line.setAttribute('y1', newY.toString());
 			}
 
 			// Move element
@@ -310,7 +320,7 @@
 						let borderWidth = parseInt(currentElement.getAttribute('stroke-width') || 0);
 						let minX = 0 + borderWidth;
 						let maxX = parseInt(svg.getAttribute('width')) - borderWidth - relativeCoords.width;
-						let minY = 0;// + borderWidth;
+						let minY = 0 + borderWidth;
 						let maxY = parseInt(svg.getAttribute('height')) - relativeCoords.height - borderWidth;
 
 						let targetX = movementInitCoords.elementX + diff.x;
@@ -468,10 +478,50 @@
 
 				placeSelectBox();
 			}
+
+			// Resize Line by Points
+			if(currentElement && isResizingPoint1) {
+				let svgCoords = svg.getBoundingClientRect();
+				let relativeX = e.clientX - svgCoords.x;
+				let relativeY = e.clientY - svgCoords.y
+
+				let minX = 0;
+				let maxX = parseInt(svg.getAttribute('width'));;
+				let minY = 0;
+				let maxY = parseInt(svg.getAttribute('height'));
+
+				let newX = capToBoundaries(relativeX, minX, maxX);
+				let newY = capToBoundaries(relativeY, minY, maxY);
+
+				let line = currentElement;
+
+				line.setAttribute('x1', newX.toString());
+				line.setAttribute('y1', newY.toString());
+				placeSelectBox();
+			}
+			if(currentElement && isResizingPoint2) {
+				let svgCoords = svg.getBoundingClientRect();
+				let relativeX = e.clientX - svgCoords.x;
+				let relativeY = e.clientY - svgCoords.y
+
+				let minX = 0;
+				let maxX = parseInt(svg.getAttribute('width'));;
+				let minY = 0;
+				let maxY = parseInt(svg.getAttribute('height'));
+
+				let newX = capToBoundaries(relativeX, minX, maxX);
+				let newY = capToBoundaries(relativeY, minY, maxY);
+
+				let line = currentElement;
+
+				line.setAttribute('x2', newX.toString());
+				line.setAttribute('y2', newY.toString());
+				placeSelectBox();
+			}
 		}
 
 		function handleElementClick(element) {
-			selectElement(element);	
+			selectElement(element);
 		}
 
 		function handleElementMousedown(e) {
@@ -498,6 +548,12 @@
 				if(resizeDirection === "left") {
 					isResizingLeft = true;
 				}
+				if(resizeDirection === "point1") {
+					isResizingPoint1 = true;
+				}
+				if(resizeDirection === "point2") {
+					isResizingPoint2 = true;
+				}
 			}
 		}
 
@@ -509,6 +565,8 @@
 			isResizingUp = false;
 		  isResizingRight = false;
 		  isResizingLeft = false;
+			isResizingPoint1 = false;
+			isResizingPoint2 = false;
 		}
 
 		/*
@@ -642,18 +700,18 @@
 						let resizeLength = RESIZE_RECTANGLE_LENGTH;
 						// NOTE(fede): positioned relative to the selection rectangle
 						let resizeDims = {
-							start: {
+							point1: {
 								x: absPositionsLine.x1 - boxX - resizeLength / 2,
 								y: absPositionsLine.y1 - boxY - resizeLength / 2,
 							},
-							end: {
+							point2: {
 								x: absPositionsLine.x2 - boxX - resizeLength / 2,
 								y: absPositionsLine.y2 - boxY - resizeLength / 2,
 							},
 						}
 
-						let rectangleSelectors = 
-							['start', 'end'].map(function(location) {
+						let rectangleSelectors =
+							['point1', 'point2'].map(function(location) {
 								let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
 								// TODO(fede): handle different cursors
 								let cursor = 'nwse-resize';
@@ -733,7 +791,7 @@
 						`
 
 						// handle resize rectangle style (Store in Array in case I need to insert them)
-						let rectangleSelectors = 
+						let rectangleSelectors =
 							['up', 'down', 'left', 'right'].map(function(location) {
 								let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
 								let cursor = ['up', 'down'].includes(location) ? 'ns-resize' : 'ew-resize';
@@ -783,7 +841,7 @@
 			let square = document.createElement('div');
 			square.setAttribute('data-item', `resize`);
 			square.setAttribute('data-location', `${location}`);
-			
+		
 			return square;
 		}
 
@@ -860,6 +918,10 @@
 			} else {
 				return(currentText + newInput)
 			}
+		}
+
+		function capToBoundaries(val, min, max) {
+			return Math.min(max, Math.max(val, min));
 		}
 
 		// Debugging
