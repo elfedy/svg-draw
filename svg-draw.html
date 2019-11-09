@@ -53,7 +53,18 @@
 		let svg = document.querySelector('.js-svg');
 		let svgns = "http://www.w3.org/2000/svg";
 
-		let NON_TEXT_KEYS = ['Alt', 'Dead', 'Meta', 'Shift', 'Enter', 'Control']
+		let NON_TEXT_KEYS = [
+			'Alt',
+			'Dead',
+			'Meta',
+			'Shift',
+			'Enter',
+			'Control',
+			'ArrowUp',
+			'ArrowDown',
+			'ArrowLeft',
+			'ArrowRight'
+		]
 		let DEFAULT_FONT_SIZE = 14
 		let RESIZE_RECTANGLE_LENGTH = 10;
 		let DEFAULT_LINE_WIDTH = 1
@@ -114,6 +125,7 @@
 							e.preventDefault();
 							currentElement.textContent = addKeyInput("", e.key);
 							textAction = "inserting";
+							currentElement.setAttribute('fill', 'black');
 							placeSelectBox();
 						}
 						break;
@@ -198,6 +210,11 @@
 						break;
 
 					default:
+						// Set fill color for inserted Text
+						if(textAction === "initialInsert") {
+							currentElement.setAttribute('fill', 'black');
+						}
+
 						// Deselect if target is not an item
 						currentElement = null;
 						textAction = null;
@@ -592,6 +609,7 @@
 			let text = document.createElementNS(svgns, 'text');
 			text.setAttribute('x', '100');
 			text.setAttribute('y', '100');
+			text.setAttribute('fill', 'blue');
 			text.setAttribute('data-item', 'element');
 			text.setAttribute('style', `font-size: ${DEFAULT_FONT_SIZE}px`);
 			text.textContent  = 'Enter text';
