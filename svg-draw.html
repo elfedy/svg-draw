@@ -567,6 +567,7 @@
 		  isResizingLeft = false;
 			isResizingPoint1 = false;
 			isResizingPoint2 = false;
+			placeSelectBox();
 		}
 
 		/*
@@ -714,7 +715,13 @@
 							['point1', 'point2'].map(function(location) {
 								let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
 								// TODO(fede): handle different cursors
-								let cursor = 'nwse-resize';
+								let cursor;
+								if(isResizingPoint1 || isResizingPoint2) {
+									cursor = 'grabbing';
+								}	else {
+									cursor = 'grab'
+								}
+								
 
 								item.style = `
 									width: ${resizeLength}px;
