@@ -1,0 +1,105 @@
+<html>
+	<head>
+		<meta charset="utf-8"/>
+	</head>
+
+	<body>
+		<main>
+			<div class="canvas-container">
+				<svg version="1.1"
+					baseProfile="full"
+					width="500"
+					height="500"
+					xmlns="http://www.w3.org/2000/svg"
+					class="js-svg"
+					>
+					<rect height="100%" width="100%" fill="#fff"/>
+				</svg>
+			</div>
+			<div class="controls">
+				<div class="controls__grid">
+					<button class="elem-button" data-item="insert" data-element="rect">
+						Rect
+					</button>
+
+					<button class="elem-button" data-item="insert" data-element="line">
+						Line
+					</button>
+
+					<button class="elem-button" data-item="insert" data-element="text">
+						Text
+					</button>
+
+					<label>Grid Size</label>
+					<div class="controls__group">
+						<label>x</label>
+						<input class="js-size-x" type="number" min="0" max="1000" step="50" value="500"/>
+					</div>
+
+					<div class="controls__group">
+						<label>y</label>
+						<input class="js-size-y" type="number" min="0" max="1000" step="50" value="500" />
+					</div>
+				</div>
+			</div>
+		</main>
+	</body>
+
+	<script src="svg-draw.js"></script>
+
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			width: 100%;
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+		}
+
+		main {
+			height: 100vh;
+			width: 100%;
+			background-color: #eaeaea;
+		}
+
+		.main--before-insert {
+			cursor: crosshair;
+		}
+
+		.canvas-container {
+			position: absolute;
+			top: 50px;
+			left: 50px;
+		}
+
+		.controls {
+			position: absolute;
+			top: 50px;
+			left: 1100px;
+			display: flex;
+			flex-direction: column;
+			background-color: #fff;
+			padding: 20px;
+		}
+
+		.controls__group {
+			input {
+				width: 50%;
+			}
+		}
+
+		.elem-button {
+			display: block;
+			background-color: transparent;
+			border: none;
+			padding: 10px 0;
+			outline: none;
+			cursor: pointer;
+		}
+	</style>
+</html>
