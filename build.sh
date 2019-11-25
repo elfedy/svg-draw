@@ -11,4 +11,6 @@ mkdir -p build
 cp src/svg-draw.html build/
 
 # Get js file
-cp src/svg-draw.js build/
+# TODO(fede): check for typescript version and give an error
+# if it is incorrect.
+tsc src/svg-draw.ts --outFile build/svg-draw.js
