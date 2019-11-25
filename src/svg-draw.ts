@@ -5,6 +5,10 @@
 let svg = document.querySelector('.js-svg');
 let svgns = "http://www.w3.org/2000/svg";
 
+let globalElements = {
+	main: document.querySelector('main')
+}
+
 let NON_TEXT_KEYS = [
 	'Alt',
 	'Dead',
@@ -25,8 +29,8 @@ let DEFAULT_LINE_WIDTH = 1
  * CONTROLS
  */
 
-let xSize = document.querySelector('.js-size-x');
-let ySize = document.querySelector('.js-size-y');
+let xSize = <HTMLInputElement>document.querySelector('.js-size-x');
+let ySize = <HTMLInputElement>document.querySelector('.js-size-y');
 
 /*
  * GLOBAL STATE
@@ -71,7 +75,7 @@ function handleUserKeydown(e) {
 		switch(globalState.currentAction.type) {
 			case "initialInsert":
 				if(globalState.currentAction.target.localName === "text") {
-					if(!NON_TEXT_KEYS.includes(e.key)) {
+					if(!arrayIncludes(NON_TEXT_KEYS, e.key)) {
 						e.preventDefault();
 						currentElement.textContent = addKeyInput("", e.key);
 						globalState.currentAction = {type: "inserting", target: currentElement};
@@ -82,7 +86,7 @@ function handleUserKeydown(e) {
 				break;
 			case "inserting":
 				if(globalState.currentAction.target.localName === "text") {
-					if(!NON_TEXT_KEYS.includes(e.key)) {
+					if(!arrayIncludes(NON_TEXT_KEYS, e.key)) {
 						e.preventDefault();
 						let currentText = currentElement.textContent;
 						let newText = addKeyInput(currentText, e.key);
@@ -191,7 +195,7 @@ function handleUserClick(e) {
 						break;
 
 					case 'line':
-						globlaState.currentAction = {type: 'beforeInsert', object: 'line'}
+						globalState.currentAction = {type: 'beforeInsert', object: 'line'}
 						break;
 
 					case 'text':
@@ -212,11 +216,10 @@ function handleUserClick(e) {
 
 
 	// Main status according to current action
-	main = document.querySelector('main')
 	if(currentAction && currentAction.type == "beforeInsert") {
-		document.querySelector('main').className = 'main--before-insert';
+		globalElements.main.className = 'main--before-insert';
 	} else {
-		main.className = '';
+		globalElements.main.className = '';
 	}
 }
 
@@ -622,7 +625,7 @@ function placeSelectBox() {
 				let selectBox = document.querySelector('div[data-item="selector"]') || null;
 				let selectBoxFound = selectBox ? true : false;
 				selectBox = selectBox || document.createElement('div');
-				selectBox.style = `
+				let selectBoxStyle = `
 							width: ${boxWidth}px;
 							height: ${boxHeight}px;
 							border: 1px solid #0a84ff;
@@ -633,6 +636,8 @@ function placeSelectBox() {
 							left: ${boxX}px;
 							top: ${boxY}px;
 						`
+
+				selectBox.setAttribute('style', selectBoxStyle);
 
 				// init select box if not found
 				if(!selectBoxFound) {
@@ -651,7 +656,7 @@ function placeSelectBox() {
 					x2: parseInt(currentElement.getAttribute("x2")),
 					y2: parseInt(currentElement.getAttribute("y2")),
 				}
-				let svgCoords = svg.getBoundingClientRect(svg);
+				let svgCoords = svg.getBoundingClientRect();
 				let absPositionsLine = {
 					x1: parseInt(currentElement.getAttribute("x1")) + svgCoords.x,
 					y1: parseInt(currentElement.getAttribute("y1")) + svgCoords.y,
@@ -673,7 +678,8 @@ function placeSelectBox() {
 				let selectBox = document.querySelector('div[data-item="selector"]') || null;
 				let selectBoxFound = selectBox ? true : false;
 				selectBox = selectBox || document.createElement('div');
-				selectBox.style = `
+
+				let newSelectBoxStyle = `
 							width: ${boxWidth}px;
 							height: ${boxHeight}px;
 							//border: 1px solid #0a84ff;
@@ -684,6 +690,7 @@ function placeSelectBox() {
 							left: ${boxX}px;
 							top: ${boxY}px;
 						`
+				selectBox.setAttribute('style', newSelectBoxStyle);
 
 				// resize square dims
 				let resizeLength = RESIZE_RECTANGLE_LENGTH;
@@ -702,16 +709,16 @@ function placeSelectBox() {
 				let rectangleSelectors =
 					['point1', 'point2'].map(function(location) {
 						let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
-						// TODO(fede): handle different cursors
+
 						let cursor;
 						if(isResizingPoint1 || isResizingPoint2) {
 							cursor = 'grabbing';
 						}	else {
-							cursor = 'grab'
+							cursor = 'grab';
 						}
 
 
-						item.style = `
+						let newItemStyle = `
 									width: ${resizeLength}px;
 									height: ${resizeLength}px;
 									border: 1px solid #000;
@@ -723,6 +730,7 @@ function placeSelectBox() {
 									left: ${resizeDims[location].x}px;
 									top: ${resizeDims[location].y}px;
 								`
+						item.setAttribute('style', newItemStyle);
 
 						return item
 					})
@@ -773,7 +781,7 @@ function placeSelectBox() {
 				let selectBox = document.querySelector('div[data-item="selector"]') || null;
 				let selectBoxFound = selectBox ? true : false;
 				selectBox = selectBox || document.createElement('div');
-				selectBox.style = `
+				let newSelectBoxStyle = `
 							width: ${boxWidth}px;
 							height: ${boxHeight}px;
 							border: 1px solid #0a84ff;
@@ -784,25 +792,28 @@ function placeSelectBox() {
 							left: ${boxX}px;
 							top: ${boxY}px;
 						`
+				selectBox.setAttribute('style', newSelectBoxStyle);
 
 				// handle resize rectangle style (Store in Array in case I need to insert them)
 				let rectangleSelectors =
 					['up', 'down', 'left', 'right'].map(function(location) {
-						let item = document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location);
-						let cursor = ['up', 'down'].includes(location) ? 'ns-resize' : 'ew-resize';
+						let item = <HTMLElement>(document.querySelector(`div[data-location="${location}"]`) || createResizeSquare(location));
+						let cursor = arrayIncludes(['up', 'down'], location) ? 'ns-resize' : 'ew-resize';
 
-						item.style = `
-									width: ${resizeLength}px;
-									height: ${resizeLength}px;
-									border: 1px solid #000;
-									background-color: #fff;
-									box-sizing: border-box;
-									cursor: ${cursor};
-									position: absolute;
-									z-index: 20;
-									left: ${resizeDims[location].x}px;
-									top: ${resizeDims[location].y}px;
-								`
+						let itemStyle = `
+								width: ${resizeLength}px;
+								height: ${resizeLength}px;
+								border: 1px solid #000;
+								background-color: #fff;
+								box-sizing: border-box;
+								cursor: ${cursor};
+								position: absolute;
+								z-index: 20;
+								left: ${resizeDims[location].x}px;
+								top: ${resizeDims[location].y}px;
+							`
+
+						item.setAttribute('style', itemStyle);
 
 						return item
 					})
@@ -859,19 +870,19 @@ function getRelativeCoords(element) {
 			break;
 
 		case 'text':
-			clientBoundRect = element.getBoundingClientRect();
+			let textClientBoundRect = element.getBoundingClientRect();
 			x = parseInt(element.getAttribute('x'));
 			y = parseInt(element.getAttribute('y'));
-			width = clientBoundRect.width;
-			height = clientBoundRect.height;
+			width = textClientBoundRect.width;
+			height = textClientBoundRect.height;
 			break;
 
 		case 'line':
-			clientBoundRect = element.getBoundingClientRect();
+			let lineClientBoundRect = element.getBoundingClientRect();
 			x = parseInt(element.getAttribute('x1'));
 			y = parseInt(element.getAttribute('y1'));
-			width = clientBoundRect.width;
-			height = clientBoundRect.height;
+			width = lineClientBoundRect.width;
+			height = lineClientBoundRect.height;
 			break;
 	}
 
@@ -885,7 +896,7 @@ function getRelativeCoords(element) {
 
 function getAbsoluteCoords(element) {
 	let relCoords = getRelativeCoords(element);
-	let svgCoords = svg.getBoundingClientRect(svg);
+	let svgCoords = svg.getBoundingClientRect();
 
 
 	return {
@@ -917,6 +928,16 @@ function addKeyInput(currentText, newInput) {
 
 function capToBoundaries(val, min, max) {
 	return Math.min(max, Math.max(val, min));
+}
+
+function arrayIncludes(array: any[], val): boolean {
+	let i;
+	let found = false;
+	for(i = 0; i < array.length && !found; i++) {
+		found = array[i] === val;
+	}
+
+	return found;
 }
 
 // Debugging
