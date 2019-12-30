@@ -1,0 +1,22 @@
+{
+  "name": "svg-draw",
+  "version": "1.0.0",
+  "description": "Simple web svg editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elfedy/svg-draw.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/elfedy/svg-draw/issues"
+  },
+  "homepage": "https://github.com/elfedy/svg-draw#readme",
+  "dependencies": {
+    "fsevents": "^2.1.2"
+  }
+}

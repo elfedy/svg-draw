@@ -67,7 +67,7 @@ ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value))
 
 
 /*
- * EVENT HANDLERS
+ * EVENT HANDLER
  */
 
 function handleUserKeydown(e) {
