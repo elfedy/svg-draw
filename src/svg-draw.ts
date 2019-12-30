@@ -72,7 +72,9 @@ ySize.addEventListener('change', (e) => svg.setAttribute('height', ySize.value))
 
 function handleUserKeydown(e) {
 	if(currentElement !== null) {
-		switch(globalState.currentAction.type) {
+		//TODO(Fede): maybe current Action can't be null and always has an action type?
+		let actionType = globalState.currentAction ? globalState.currentAction.type : "none"
+		switch(actionType) {
 			case "initialInsert":
 				if(globalState.currentAction.target.localName === "text") {
 					if(!arrayIncludes(NON_TEXT_KEYS, e.key)) {
@@ -96,6 +98,7 @@ function handleUserKeydown(e) {
 				}
 				break;
 			default:
+				// Delete current element
 				if((e.keyCode === 8 || e.keyCode === 46)) {
 					e.preventDefault();
 					removeElement(currentElement);
@@ -209,7 +212,6 @@ function handleUserClick(e) {
 				// Deselect if target is not an item
 				currentElement = null;
 				globalState.currentAction = null;
-				console.log('deselecting')
 				placeSelectBox();
 		}
 	}
