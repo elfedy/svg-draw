@@ -35,6 +35,7 @@ let ySize = <HTMLInputElement>document.querySelector('.js-size-y');
 /*
  * GLOBAL STATE
  */
+// TODO(Fede): Everything should be moved into the global state object
 let currentElement = null;
 let currentAction = null;
 let movementInitCoords = null;
@@ -174,7 +175,7 @@ function handleUserClick(e) {
 			} break;
 
 			case 'inserting': {
-				currentAction = null
+				globalState.currentAction = null;
 			} break;
 		}
 	} else {
@@ -231,20 +232,21 @@ function handleUserMousemove(e) {
 	}
 
 	// TODO(fede): Wrap this in case statement to hanle current action
-	if(globalState.currentAction === "inserting") {
+	let currentActionType = globalState.currentAction ? globalState.currentAction.type : null;
+	if(currentActionType === "inserting") {
 		let svgCoords = svg.getBoundingClientRect();
 		let relativeX = e.clientX - svgCoords.x;
 		let relativeY = e.clientY - svgCoords.y
 
 		let minX = 0;
-		let maxX = parseInt(svg.getAttribute('width'));;
+		let maxX = parseInt(svg.getAttribute('width'));
 		let minY = 0;
 		let maxY = parseInt(svg.getAttribute('height'));
 
 		let newX = capToBoundaries(relativeX, minX, maxX);
 		let newY = capToBoundaries(relativeY, minY, maxY);
 
-		let line = globalState.currentAction.target
+		let line = globalState.currentAction.target;
 
 		line.setAttribute('x1', newX.toString());
 		line.setAttribute('y1', newY.toString());
