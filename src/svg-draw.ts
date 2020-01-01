@@ -152,14 +152,14 @@ function handleUserClick(e) {
 					case "text": {
 						let svgCoords = svg.getBoundingClientRect();
 						let relativeX = e.clientX - svgCoords.x;
-						let relativeY = e.clientY - svgCoords.y
+						let relativeY = e.clientY - svgCoords.y;
 
 						// TODO(fede): Detect when click is not inside the canvas
 						let isInsideSvg = true
 
 						let text = document.createElementNS(svgns, 'text');
 						text.setAttribute('x', relativeX.toString());
-						text.setAttribute('y', '100');
+						text.setAttribute('y', relativeY.toString());
 						text.setAttribute('fill', 'blue');
 						text.setAttribute('data-item', 'element');
 						text.setAttribute('style', `font-size: ${DEFAULT_FONT_SIZE}px`);
