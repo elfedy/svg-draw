@@ -219,7 +219,7 @@ function handleUserClick(e) {
 
 
 	// Main status according to current action
-	if(currentAction && currentAction.type == "beforeInsert") {
+	if(globalState.currentAction && globalState.currentAction.type == "beforeInsert") {
 		globalElements.main.className = 'main--before-insert';
 	} else {
 		globalElements.main.className = '';
@@ -236,7 +236,7 @@ function handleUserMousemove(e) {
 	if(currentActionType === "inserting") {
 		let svgCoords = svg.getBoundingClientRect();
 		let relativeX = e.clientX - svgCoords.x;
-		let relativeY = e.clientY - svgCoords.y
+		let relativeY = e.clientY - svgCoords.y;
 
 		let minX = 0;
 		let maxX = parseInt(svg.getAttribute('width'));
