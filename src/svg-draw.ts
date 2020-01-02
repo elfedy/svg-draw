@@ -130,10 +130,13 @@ function handleUserClick(e) {
 						let svgCoords = svg.getBoundingClientRect();
 						let relativeX = e.clientX - svgCoords.x;
 						let relativeY = e.clientY - svgCoords.y
+						let maxX = svgCoords.width;
+						let maxY = svgCoords.height;
+						let minX = 0;
+						let minY = 0;
 
 						// TODO(fede): Detect when click is not inside the canvas
-						let isInsideSvg = true
-
+						let isInsideSvg = relativeX >= minX && relativeX <= maxX && relativeX >= minY && relativeY <= maxY
 						if(isInsideSvg) {
 							let line = document.createElementNS(svgns, 'line');
 							line.setAttribute('x1', relativeX.toString());
@@ -152,23 +155,26 @@ function handleUserClick(e) {
 					case "text": {
 						let svgCoords = svg.getBoundingClientRect();
 						let relativeX = e.clientX - svgCoords.x;
-						let relativeY = e.clientY - svgCoords.y;
+						let relativeY = e.clientY - svgCoords.y + DEFAULT_FONT_SIZE;
+						let maxX = svgCoords.width;
+						let maxY = svgCoords.height;
+						let minX = 0;
+						let minY = DEFAULT_FONT_SIZE;
 
-						// TODO(fede): Detect when click is not inside the canvas
-						let isInsideSvg = true
+						if(relativeX >= minX && relativeX <= maxX && relativeX >= minY && relativeY <= maxY) {	
+							let text = document.createElementNS(svgns, 'text');
+							text.setAttribute('x', relativeX.toString());
+							text.setAttribute('y', relativeY.toString());
+							text.setAttribute('fill', 'blue');
+							text.setAttribute('data-item', 'element');
+							text.setAttribute('style', `font-size: ${DEFAULT_FONT_SIZE}px`);
+							text.textContent  = 'Enter text';
 
-						let text = document.createElementNS(svgns, 'text');
-						text.setAttribute('x', relativeX.toString());
-						text.setAttribute('y', relativeY.toString());
-						text.setAttribute('fill', 'blue');
-						text.setAttribute('data-item', 'element');
-						text.setAttribute('style', `font-size: ${DEFAULT_FONT_SIZE}px`);
-						text.textContent  = 'Enter text';
-
-						currentElement = text;
-						globalState.currentAction = {type: 'initialInsert', target: text};
-						svg.appendChild(text);
-						placeSelectBox();
+							currentElement = text;
+							globalState.currentAction = {type: 'initialInsert', target: text};
+							svg.appendChild(text);
+							placeSelectBox();
+						}
 					} break;
 
 				}
@@ -231,7 +237,7 @@ function handleUserMousemove(e) {
 		e.preventDefault();
 	}
 
-	// TODO(fede): Wrap this in case statement to hanle current action
+	// TODO(fede): Wrap this in case statement to handle current action
 	let currentActionType = globalState.currentAction ? globalState.currentAction.type : null;
 	if(currentActionType === "inserting") {
 		let svgCoords = svg.getBoundingClientRect();
