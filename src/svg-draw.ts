@@ -318,6 +318,41 @@ function handleUserMousemove(e) {
 
 			} break;
 
+			case "text": {
+				movementInitCoords = movementInitCoords || {
+					clientX: e.clientX, 
+					clientY: e.clientY,
+					elementX: parseInt(currentElement.getAttribute('x')),
+					elementY: parseInt(currentElement.getAttribute('y')),
+				};
+
+
+				let diff = {
+					x: e.clientX - movementInitCoords.clientX,
+					y: e.clientY - movementInitCoords.clientY,
+				};
+
+				let relativeCoords = getRelativeCoords(currentElement);
+
+				// Get new x/y values
+				let borderWidth = parseInt(currentElement.getAttribute('stroke-width') || 0);
+				let minX = 0 + borderWidth;
+				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - relativeCoords.width;
+				let minY = 0 + borderWidth + DEFAULT_FONT_SIZE;
+				let maxY = parseInt(svg.getAttribute('height')) - relativeCoords.height - borderWidth + DEFAULT_FONT_SIZE;
+
+				let targetX = movementInitCoords.elementX + diff.x;
+				let newX = Math.min(maxX, Math.max(minX, targetX));
+				let targetY = movementInitCoords.elementY + diff.y;
+				let newY = Math.min(maxY, Math.max(minY, targetY));
+
+				// Set new position
+				currentElement.setAttribute('x', newX);
+				currentElement.setAttribute('y', newY);
+
+				placeSelectBox();
+			} break;
+
 			default: {
 				movementInitCoords = movementInitCoords || {
 					clientX: e.clientX, 
