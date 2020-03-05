@@ -37,7 +37,6 @@ let ySize = <HTMLInputElement>document.querySelector('.js-size-y');
  */
 // TODO(Fede): Everything should be moved into the global state object
 let currentElement = null;
-let currentAction = null;
 let movementInitCoords = null;
 let globalState = {
 	currentAction: null,
@@ -135,7 +134,6 @@ function handleUserClick(e) {
 						let minX = 0;
 						let minY = 0;
 
-						// TODO(fede): Detect when click is not inside the canvas
 						let isInsideSvg = relativeX >= minX && relativeX <= maxX && relativeX >= minY && relativeY <= maxY
 						if(isInsideSvg) {
 							let line = document.createElementNS(svgns, 'line');
@@ -149,6 +147,37 @@ function handleUserClick(e) {
 
 							globalState.currentAction = {type: "inserting", target: line};
 							svg.appendChild(line);
+						}
+					} break;
+
+					case "rect": {
+						let svgCoords = svg.getBoundingClientRect();
+						let relativeX = e.clientX - svgCoords.x;
+						let relativeY = e.clientY - svgCoords.y
+						let maxX = svgCoords.width;
+						let maxY = svgCoords.height;
+						let minX = 0;
+						let minY = 0;
+
+						let isInsideSvg = relativeX >= minX && relativeX <= maxX && relativeX >= minY && relativeY <= maxY
+						if(isInsideSvg) {
+							let rect = document.createElementNS(svgns, 'rect');
+							rect.setAttribute('height', '0');
+							rect.setAttribute('width', '0');
+							rect.setAttribute('x', relativeX.toString());
+							rect.setAttribute('y', relativeY.toString());
+							rect.setAttribute('fill', 'transparent');
+							rect.setAttribute('stroke', 'black');
+							rect.setAttribute('stroke-width', DEFAULT_LINE_WIDTH.toString());
+							rect.setAttribute('data-item', 'element');
+
+              globalState.currentAction = {
+                type: "inserting",
+                target: rect,
+                initialCoords: { x: relativeX, y: relativeY },
+              };
+
+							svg.appendChild(rect);
 						}
 					} break;
 
@@ -198,19 +227,10 @@ function handleUserClick(e) {
 				break;
 
 			case 'insert':
+        currentElement = null;
 				let element = e.target.getAttribute('data-element') || null
-				switch(element) {
-					case 'rect':
-						insertRectElement();
-						break;
-
-					case 'line':
-						globalState.currentAction = {type: 'beforeInsert', object: 'line'}
-						break;
-
-					case 'text':
-						globalState.currentAction = {type: 'beforeInsert', object: 'text'}
-						break;
+				if(element) {
+					globalState.currentAction = {type: 'beforeInsert', object: element};
 				}
 				placeSelectBox();
 				break;
@@ -240,22 +260,56 @@ function handleUserMousemove(e) {
 	// TODO(fede): Wrap this in case statement to handle current action
 	let currentActionType = globalState.currentAction ? globalState.currentAction.type : null;
 	if(currentActionType === "inserting") {
-		let svgCoords = svg.getBoundingClientRect();
-		let relativeX = e.clientX - svgCoords.x;
-		let relativeY = e.clientY - svgCoords.y;
+    let target = globalState.currentAction.target
+    let svgCoords = svg.getBoundingClientRect();
+    let relativeX = e.clientX - svgCoords.x;
+    let relativeY = e.clientY - svgCoords.y;
 
-		let minX = 0;
-		let maxX = parseInt(svg.getAttribute('width'));
-		let minY = 0;
-		let maxY = parseInt(svg.getAttribute('height'));
+    switch(target.nodeName) {
+      case "line": {
+        let minX = 0;
+        let maxX = parseInt(svg.getAttribute('width'));
+        let minY = 0;
+        let maxY = parseInt(svg.getAttribute('height'));
 
-		let newX = capToBoundaries(relativeX, minX, maxX);
-		let newY = capToBoundaries(relativeY, minY, maxY);
+        let newX = capToBoundaries(relativeX, minX, maxX);
+        let newY = capToBoundaries(relativeY, minY, maxY);
 
-		let line = globalState.currentAction.target;
+        let line = globalState.currentAction.target;
 
-		line.setAttribute('x1', newX.toString());
-		line.setAttribute('y1', newY.toString());
+        line.setAttribute('x1', newX.toString());
+        line.setAttribute('y1', newY.toString());
+      } break;
+
+      case "rect": {
+        let minX = DEFAULT_LINE_WIDTH;
+        let maxX = parseInt(svg.getAttribute('width')) - DEFAULT_LINE_WIDTH;
+        let minY = DEFAULT_LINE_WIDTH;
+        let maxY = parseInt(svg.getAttribute('height')) - DEFAULT_LINE_WIDTH;
+
+        let initialCoords = globalState.currentAction.initialCoords;
+        let x = initialCoords.x;
+        let y = initialCoords.y;
+
+        relativeX = capToBoundaries(relativeX, minX, maxX);
+        relativeY = capToBoundaries(relativeY, minY, maxY);
+
+        let newX = Math.min(x, relativeX);
+        let newY = Math.min(y, relativeY);
+
+        let widthVal = relativeX - x;
+        let newWidth = widthVal > 0 ? widthVal : -widthVal; 
+        let heightVal = relativeY - y;
+        let newHeight = heightVal > 0 ? heightVal : -heightVal; 
+
+        target.setAttribute('x', newX.toString());
+        target.setAttribute('width', newWidth.toString());
+        target.setAttribute('y', newY.toString());
+        target.setAttribute('height', newHeight.toString());
+
+      } break;
+    }
+
 	}
 
 	// Move element
@@ -624,24 +678,6 @@ function handleUserMouseup(e) {
 }
 
 /*
- * INSERT ELEMENTS
- */
-
-function insertRectElement() {
-	let rect = document.createElementNS(svgns, 'rect');
-	rect.setAttribute('height', '100');
-	rect.setAttribute('width', '100');
-	rect.setAttribute('x', '100');
-	rect.setAttribute('y', '100');
-	rect.setAttribute('fill', 'transparent');
-	rect.setAttribute('stroke', 'black');
-	rect.setAttribute('stroke-width', DEFAULT_LINE_WIDTH.toString());
-	rect.setAttribute('data-item', 'element');
-
-	svg.appendChild(rect);
-}
-
-/*
  * ACTIONS
  */
 
@@ -983,6 +1019,10 @@ function arrayIncludes(array: any[], val): boolean {
 	}
 
 	return found;
+}
+
+function elemGetAmount(element: Element, attributeName: string): number {
+  return parseInt(element.getAttribute(attributeName));
 }
 
 // Debugging
