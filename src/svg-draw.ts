@@ -116,6 +116,10 @@ function handleUserClick(e) {
 		e.preventDefault();
 	}
 
+  if(itemType == 'download') {
+    download();
+  }
+
 
 	if(globalState.currentAction) {
 		// Handle current action
@@ -930,6 +934,26 @@ function createResizeSquare(location) {
 	square.setAttribute('data-location', `${location}`);
 
 	return square;
+}
+
+/*
+ * DOWNLOAD
+ */
+
+function download() {
+	let element = document.createElement('a');
+	let str = new XMLSerializer().serializeToString(svg);
+	let blob = new Blob([str], {type: 'image/svg+xml'});
+	let objectURL = URL.createObjectURL(blob);
+	
+	element.setAttribute('href', objectURL)
+  element.setAttribute('download', 'svg-draw.svg');
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
 }
 
 /*
