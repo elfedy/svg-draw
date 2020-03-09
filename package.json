@@ -16,7 +16,8 @@
     "url": "https://github.com/elfedy/svg-draw/issues"
   },
   "homepage": "https://github.com/elfedy/svg-draw#readme",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "fsevents": "^2.1.2"
   }
 }

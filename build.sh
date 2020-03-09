@@ -10,7 +10,7 @@ mkdir -p build
 
 # Get html file
 echo Copying .html files...
-cp src/svg-draw.html build/
+cp src/svg-draw.html build/index.html
 echo .html Files copied successfully
 
 # Get js file

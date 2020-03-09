@@ -21,9 +21,9 @@ let NON_TEXT_KEYS = [
 	'ArrowLeft',
 	'ArrowRight'
 ]
-let DEFAULT_FONT_SIZE = 14
+let DEFAULT_FONT_SIZE = 18;
 let RESIZE_RECTANGLE_LENGTH = 10;
-let DEFAULT_LINE_WIDTH = 1
+let DEFAULT_LINE_WIDTH = 5;
 
 /*
  * CONTROLS
