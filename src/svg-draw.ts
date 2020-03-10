@@ -429,10 +429,10 @@ function handleUserMousemove(e) {
 
 				// Get new x/y values
 				let borderWidth = parseInt(currentElement.getAttribute('stroke-width') || 0);
-				let minX = 0 + borderWidth;
-				let maxX = parseInt(svg.getAttribute('width')) - borderWidth - relativeCoords.width;
-				let minY = 0 + borderWidth;
-				let maxY = parseInt(svg.getAttribute('height')) - relativeCoords.height - borderWidth;
+        let minX = 0 + borderWidth / 2;
+        let maxX = parseInt(svg.getAttribute('width')) - borderWidth / 2 - relativeCoords.width;
+        let minY = 0 + borderWidth / 2;// + borderWidth;
+        let maxY = parseInt(svg.getAttribute('height')) - relativeCoords.height - borderWidth / 2;
 
 				let targetX = movementInitCoords.elementX + diff.x;
 				let newX = Math.min(maxX, Math.max(minX, targetX));
