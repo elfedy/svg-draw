@@ -1,6 +1,8 @@
 # SVG Draw
 Simple web svg editor
 
+Check demo [here](https://pensive-swartz-698ba8.netlify.com).
+
 ## Building
 Run `build.sh`
 
