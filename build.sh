@@ -4,6 +4,8 @@ set -e
 set -o pipefail
 
 echo Starting build...
+
+npm install -g typescript
 # Reset the build directory
 rm -rf build
 mkdir -p build
