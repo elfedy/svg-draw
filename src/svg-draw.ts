@@ -836,10 +836,10 @@ function placeSelectBox() {
 
 			case "rect": {
 				// Set box dimensions
-				let boxX = intCoords.x - padding / 2;
-				let boxY = intCoords.y - padding / 2;
-				let boxWidth = dimensions.width + padding;
-				let boxHeight = dimensions.height + padding;
+				let boxX = intCoords.x - padding / 2 - DEFAULT_LINE_WIDTH;
+				let boxY = intCoords.y - padding / 2 - DEFAULT_LINE_WIDTH;
+				let boxWidth = dimensions.width + padding + DEFAULT_LINE_WIDTH;
+				let boxHeight = dimensions.height + padding + DEFAULT_LINE_WIDTH;
 
 				// resize square dims
 				let resizeLength = RESIZE_RECTANGLE_LENGTH;
