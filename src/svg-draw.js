@@ -96,6 +96,7 @@ function handleUserKeydown(e) {
 }
 function handleUserClick(e) {
     var itemType = e.target.getAttribute('data-item') || null;
+    console.log(itemType);
     if (itemType) {
         e.preventDefault();
     }

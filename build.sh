@@ -25,6 +25,11 @@ echo Copying .html files...
 cp src/svg-draw.html build/index.html
 echo .html Files copied successfully
 
+# Get images
+echo Copying .images
+cp src/*.svg build/
+cp src/*.png build/
+
 # Get js file
 
 echo Compiling .ts files...

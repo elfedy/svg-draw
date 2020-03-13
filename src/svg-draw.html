@@ -5,7 +5,20 @@
 
 	<body>
 		<main>
-      <button data-item="download">Download</button>
+      <button 
+        data-item="download"
+        style="
+          background-color: #fff;
+          border: none;
+          outline: none;
+          cursor: pointer;
+          padding: 3px 5px;
+          margin-left: 50px;
+          margin-top: 10px;
+          border-radius: 3px;
+        ">
+        Download
+      </button>
 			<div class="canvas-container">
 				<svg version="1.1"
 					baseProfile="full"
@@ -19,19 +32,16 @@
 			</div>
 			<div class="controls">
 				<div class="controls__grid">
-					<button class="elem-button" data-item="insert" data-element="rect">
-						Rect
+					<button style="background-image: url(rect.svg);" class="elem-button" data-item="insert" data-element="rect">
 					</button>
 
-					<button class="elem-button" data-item="insert" data-element="line">
-						Line
+					<button style="background-image: url(line.svg);" class="elem-button" data-item="insert" data-element="line">
 					</button>
 
 					<button class="elem-button" data-item="insert" data-element="text">
-						Text
+            A
 					</button>
 
-					<label>Grid Size</label>
 					<div class="controls__group">
 						<label>x</label>
 						<input class="js-size-x" type="number" min="0" max="1000" step="50" value="500"/>
@@ -60,6 +70,7 @@
 			-moz-user-select: none;
 			-ms-user-select: none;
 			user-select: none;
+      font-family: Helvetica, sans-serif;
 		}
 
 		main {
@@ -81,26 +92,38 @@
 		.controls {
 			position: absolute;
 			top: 50px;
-			left: 1100px;
+      right: 20px;
 			display: flex;
 			flex-direction: column;
 			background-color: #fff;
 			padding: 20px;
 		}
 
-		.controls__group {
-			input {
-				width: 50%;
-			}
+    .controls__grid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+		.controls__group input {
+      width: 50px;
+      margin-bottom: 5px;
 		}
 
 		.elem-button {
+      height: 28px;
+      width: 28px;
 			display: block;
 			background-color: transparent;
 			border: none;
-			padding: 10px 0;
 			outline: none;
+      font-size: 16px;
 			cursor: pointer;
+      border: 1px solid #dadada;
+      border-radius: 3px;
+      margin-bottom: 10px;
+      background-repeat: no-repeat;
+      background-position: center;
 		}
 	</style>
 </html>

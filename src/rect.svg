@@ -1,0 +1,8 @@
+<svg version="1.1"
+  baseProfile="full"
+  width="20"
+  height="20"
+  xmlns="http://www.w3.org/2000/svg"
+  >
+  <rect x="4" y="4" height="12" width="12" fill="transparent" stroke="#000"/>
+</svg>
