@@ -28,7 +28,6 @@ echo .html Files copied successfully
 # Get images
 echo Copying .images
 cp src/*.svg build/
-cp src/*.png build/
 
 # Get js file
 
